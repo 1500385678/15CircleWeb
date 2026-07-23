@@ -4,7 +4,7 @@
 - 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
 - 启动:python app.py → http://localhost:5000
 """
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 __updated__ = "2026-07-23"
 
 import sqlite3
@@ -226,6 +226,177 @@ def api_case_projects(code):
         "case_name": case["name_zh"],
         "total": len(rows),
         "categories": summary,
+    })
+
+
+# ============== 业态体块图 ==============
+# 类目(11 大类:阿那亚) -> 颜色
+CASE_CATEGORY_COLORS = {
+    "精神建筑":   "#af52de",  # 紫
+    "业主食堂":   "#ff9500",  # 橙
+    "文艺空间":   "#5856d6",  # 深紫蓝
+    "运动休闲":   "#34c759",  # 绿
+    "酒店民宿":   "#5ac8fa",  # 青
+    "精品商业":   "#ff2d55",  # 粉
+    "亲子休闲":   "#ff3b30",  # 红
+    "创新教育":   "#ffcc00",  # 黄
+    "全系餐饮":   "#ff9500",  # 橙
+    "生活服务":   "#8e8e93",  # 灰
+    "医疗健康":   "#ff3b30",  # 红
+}
+# 一级分类 (10 大类) -> 颜色
+CIRCLE_CATEGORY_COLORS = {
+    "PUB": "#0066cc",  # 公共服务 - 苹果蓝
+    "BIZ": "#ff9500",  # 商业服务 - 橙
+    "CUL": "#af52de",  # 文化活动 - 紫
+    "TRN": "#5ac8fa",  # 交通设施 - 青
+    "GRN": "#34c759",  # 绿地与公共空间 - 绿
+    "MUN": "#a3a3a3",  # 市政设施 - 灰
+    "GOV": "#5856d6",  # 行政管理 - 深蓝紫
+    "SMT": "#ff2d55",  # 智慧/智能化 - 粉
+    "SAF": "#ff3b30",  # 公共安全 - 红
+    "OTH": "#d1d1d6",  # 其他 - 浅灰
+}
+
+
+@app.route("/api/massing/cases/<code>")
+def api_massing_case(code):
+    """
+    案例业态体块数据。
+    数据源:
+      1) case_projects (具体项目清单,如阿那亚) - 按类目聚合,每项目估算 100 ㎡
+      2) case_facilities (规范类配建) - 按 categories 顶级分类聚合,精确面积
+    """
+    case = query("SELECT id, name_zh, code, type, country, city, area_ha FROM cases WHERE code = ?", [code], one=True)
+    if not case:
+        abort(404)
+    case_id = case["id"]
+
+    # 1) case_projects - 类目聚合(默认 100 ㎡/项目)
+    proj_rows = query("""
+        SELECT category, COUNT(*) cnt
+        FROM case_projects
+        WHERE case_id = ?
+        GROUP BY category
+    """, [case_id])
+    # 2) case_facilities - 按 categories 顶级聚合
+    fac_rows = query("""
+        SELECT c.name_zh AS cat_name, c.code AS cat_code,
+               COUNT(*) cnt, SUM(COALESCE(cf.total_area_sqm, 0)) total_area
+        FROM case_facilities cf
+        JOIN facilities f ON f.id = cf.facility_id
+        JOIN categories c ON c.id = f.category_id
+        WHERE cf.case_id = ?
+        GROUP BY c.id
+    """, [case_id])
+
+    blocks = []
+    total_area = 0
+    # case_facilities 优先(精确)
+    for r in fac_rows:
+        area = r["total_area"] or 0
+        blocks.append({
+            "label":   r["cat_name"],
+            "code":    r["cat_code"],
+            "count":   r["cnt"],
+            "area_sqm": float(area),
+            "source":  "case_facilities",
+            "color":   CIRCLE_CATEGORY_COLORS.get(r["cat_code"], "#86868b"),
+        })
+        total_area += area
+    # case_projects 补充(按类目,粗略估算)
+    for r in proj_rows:
+        # 避免重复:如果已有同类(case_facilities 用的 categories,跟 case_projects 用的中文类目不冲突)
+        est_area = r["cnt"] * 100.0
+        blocks.append({
+            "label":   r["category"],
+            "code":    "PRJ",
+            "count":   r["cnt"],
+            "area_sqm": float(est_area),
+            "source":  "case_projects (估算 100 ㎡/项目)",
+            "color":   CASE_CATEGORY_COLORS.get(r["category"], "#86868b"),
+        })
+        total_area += est_area
+
+    # 算占比
+    for b in blocks:
+        b["pct"] = (b["area_sqm"] / total_area * 100) if total_area > 0 else 0
+
+    # 按面积降序
+    blocks.sort(key=lambda x: -x["area_sqm"])
+
+    return jsonify({
+        "type":       "case",
+        "case_code":  code,
+        "case_name":  case["name_zh"],
+        "case_meta": {
+            "country": case["country"],
+            "city":    case["city"],
+            "type":    case["type"],
+            "area_ha": case["area_ha"],
+        },
+        "total_area_sqm": float(total_area),
+        "block_count":    len(blocks),
+        "blocks":         blocks,
+    })
+
+
+@app.route("/api/massing/circles/<code>")
+def api_massing_circle(code):
+    """
+    圈层配建体块数据。
+    JOIN facilities + categories 顶级 + facility_circle_map,
+    按一级分类聚合,用 recommended_area_sqm 估算。
+    """
+    circle = query("SELECT id, name_zh, code, walk_radius_m, population_max FROM life_circles WHERE code = ?",
+                    [code], one=True)
+    if not circle:
+        abort(404)
+    rows = query("""
+        SELECT c.name_zh AS cat_name, c.code AS cat_code,
+               COUNT(*) cnt,
+               SUM(COALESCE(f.recommended_area_sqm, 0)) AS sum_rec,
+               SUM(COALESCE(f.min_area_sqm, 0)) AS sum_min,
+               SUM(COALESCE(f.max_area_sqm, 0)) AS sum_max
+        FROM facility_circle_map fcm
+        JOIN facilities f ON f.id = fcm.facility_id
+        JOIN categories c ON c.id = f.category_id
+        WHERE fcm.circle_id = ? AND fcm.priority IN ('必配','宜配')
+        GROUP BY c.id
+    """, [circle["id"]])
+
+    blocks = []
+    total = 0
+    for r in rows:
+        area = r["sum_rec"] or 0
+        if area <= 0:
+            continue  # 跳过 0 面积的体块
+        blocks.append({
+            "label":   r["cat_name"],
+            "code":    r["cat_code"],
+            "count":   r["cnt"],
+            "area_sqm": float(area),
+            "min_area": float(r["sum_min"] or 0),
+            "max_area": float(r["sum_max"] or 0),
+            "color":   CIRCLE_CATEGORY_COLORS.get(r["cat_code"], "#86868b"),
+        })
+        total += area
+
+    for b in blocks:
+        b["pct"] = (b["area_sqm"] / total * 100) if total > 0 else 0
+    blocks.sort(key=lambda x: -x["area_sqm"])
+
+    return jsonify({
+        "type":         "circle",
+        "circle_code":  code,
+        "circle_name":  circle["name_zh"],
+        "circle_meta": {
+            "walk_radius_m": circle["walk_radius_m"],
+            "population_max": circle["population_max"],
+        },
+        "total_area_sqm": float(total),
+        "block_count":    len(blocks),
+        "blocks":         blocks,
     })
 
 @app.route("/api/categories")

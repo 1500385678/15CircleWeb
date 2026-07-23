@@ -262,6 +262,10 @@
         <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
         设施库
       </a>
+      <a class="nav-item" data-view="massing">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        业态体块
+      </a>
       <a class="nav-item" data-view="standards">
         <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         规范来源
@@ -496,6 +500,74 @@
       <div id="standards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
+    <!-- 视图 7: 业态体块图 -->
+    <section id="view-massing" class="view">
+      <div class="mb-6 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h2 class="h-display">业态体块分析</h2>
+          <p class="text-sub mt-2">按业态类型/类目聚合面积,用 isometric 3D 体块展示配比与体量关系</p>
+        </div>
+        <div class="flex items-center gap-2 text-[12px] text-[color:var(--text-3)]">
+          <span>体量 = 面积(㎡) · 高度∝规模</span>
+        </div>
+      </div>
+
+      <!-- 控件条 -->
+      <div class="card p-4 mb-4 flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-[12px] text-[color:var(--text-2)]">数据源</span>
+          <div class="flex bg-black/5 rounded-lg p-0.5">
+            <button id="massing-mode-case" class="px-3 py-1 text-[13px] rounded-md bg-white shadow-sm font-medium" data-mode="case">案例</button>
+            <button id="massing-mode-circle" class="px-3 py-1 text-[13px] rounded-md text-[color:var(--text-2)]" data-mode="circle">圈层配建</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[12px] text-[color:var(--text-2)]" id="massing-select-label">案例</span>
+          <select id="massing-target-select" class="input-plain w-auto">
+            <option value="">加载中…</option>
+          </select>
+        </div>
+        <div class="ml-auto flex items-center gap-2 text-[12px]">
+          <button id="massing-sort-area" class="px-2 py-1 rounded bg-black/5 text-[color:var(--text-1)]">按面积</button>
+          <button id="massing-sort-count" class="px-2 py-1 rounded text-[color:var(--text-2)]">按数量</button>
+        </div>
+      </div>
+
+      <!-- 主体: SVG 体块 + 数据列表 -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- 体块图 -->
+        <div class="col-span-12 lg:col-span-8 card p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-[14px] font-semibold" id="massing-svg-title">体块图</h3>
+            <div class="text-[12px] text-[color:var(--text-3)]" id="massing-svg-meta">isometric 投影 · 30°</div>
+          </div>
+          <div id="massing-svg-container" class="overflow-auto" style="min-height: 480px;">
+            <svg id="massing-svg" width="100%" height="500" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+              <text x="500" y="250" text-anchor="middle" fill="#86868b" font-size="14">加载中…</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 数据列表 -->
+        <div class="col-span-12 lg:col-span-4 flex flex-col gap-3">
+          <div class="card p-4">
+            <div class="text-[12px] text-[color:var(--text-2)]">体块数 / 总面积</div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-[28px] font-semibold tabular-nums" id="massing-stat-blocks">—</span>
+              <span class="text-[12px] text-[color:var(--text-3)]">类</span>
+              <span class="text-[28px] font-semibold tabular-nums ml-3" id="massing-stat-area">—</span>
+              <span class="text-[12px] text-[color:var(--text-3)]">㎡</span>
+            </div>
+            <div class="text-[12px] text-[color:var(--text-3)] mt-1" id="massing-stat-target">—</div>
+          </div>
+          <div class="card p-3 flex-1 overflow-hidden flex flex-col">
+            <h3 class="text-[14px] font-semibold mb-2">业态明细</h3>
+            <div id="massing-list" class="overflow-y-auto flex-1 -mx-1 px-1"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -550,6 +622,7 @@ function switchView(view) {
   if (view === 'cases') loadCases();
   if (view === 'facilities') loadFacilities();
   if (view === 'standards') loadStandards();
+  if (view === 'massing') loadMassing();
 }
 
 // ============== 仪表盘 ==============
@@ -1022,6 +1095,314 @@ searchInput.addEventListener('keydown', (e) => {
     document.getElementById('search-modal').classList.add('hidden');
     searchInput.blur();
   }
+});
+
+// ============== 业态体块图 ==============
+const Massing = {
+  mode:    'case',       // 'case' | 'circle'
+  target:  null,         // 当前选中的 code
+  data:    null,
+  sortBy:  'area',       // 'area' | 'count'
+};
+
+function lightenColor(hex, ratio = 1.2) {
+  // hex 颜色调亮 (ratio > 1) 或调暗 (ratio < 1)
+  const c = hex.replace('#', '');
+  const r = Math.min(255, Math.round(parseInt(c.substr(0,2),16) * ratio));
+  const g = Math.min(255, Math.round(parseInt(c.substr(2,2),16) * ratio));
+  const b = Math.min(255, Math.round(parseInt(c.substr(4,2),16) * ratio));
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawIsometricBox(svg, x, y, w, h, d, color, label) {
+  // x, y = 立方体"前左下角"在屏幕坐标(底面)
+  // w = 宽度, h = 高度, d = 深度
+  // iso 投影: dx=0.5, dy=0.25
+  const dx = 0.5, dy = 0.25;
+
+  // 底面 4 点(屏幕坐标)
+  const A  = { x: x,        y: y };
+  const B  = { x: x + w,    y: y };
+  const C  = { x: x + w + d*dx, y: y - d*dy };
+  const D  = { x: x + d*dx, y: y - d*dy };
+  // 顶面 4 点
+  const A2 = { x: A.x,         y: A.y - h };
+  const B2 = { x: B.x,         y: B.y - h };
+  const C2 = { x: C.x,         y: C.y - h };
+  const D2 = { x: D.x,         y: D.y - h };
+
+  const topColor  = lightenColor(color, 1.25);   // 顶面最亮
+  const sideColor = lightenColor(color, 0.78);   // 侧面最暗
+
+  // 顶面 (A2 B2 C2 D2)
+  const topPath = `M ${A2.x} ${A2.y} L ${B2.x} ${B2.y} L ${C2.x} ${C2.y} L ${D2.x} ${D2.y} Z`;
+  // 正面 (A B B2 A2)
+  const frontPath = `M ${A.x} ${A.y} L ${B.x} ${B.y} L ${B2.x} ${B2.y} L ${A2.x} ${A2.y} Z`;
+  // 侧面 (B C C2 B2)
+  const sidePath = `M ${B.x} ${B.y} L ${C.x} ${C.y} L ${C2.x} ${C2.y} L ${B2.x} ${B2.y} Z`;
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.classList.add('massing-block');
+  g.style.cursor = 'pointer';
+  g.setAttribute('data-label', label);
+
+  const side  = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  side.setAttribute('d', sidePath);
+  side.setAttribute('fill', sideColor);
+  side.setAttribute('stroke', '#00000020');
+  side.setAttribute('stroke-width', '0.5');
+  g.appendChild(side);
+
+  const front = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  front.setAttribute('d', frontPath);
+  front.setAttribute('fill', color);
+  front.setAttribute('stroke', '#00000020');
+  front.setAttribute('stroke-width', '0.5');
+  g.appendChild(front);
+
+  const top = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  top.setAttribute('d', topPath);
+  top.setAttribute('fill', topColor);
+  top.setAttribute('stroke', '#00000020');
+  top.setAttribute('stroke-width', '0.5');
+  g.appendChild(top);
+
+  // 标签(顶面中心)
+  const labelX = (A2.x + C2.x) / 2;
+  const labelY = (A2.y + C2.y) / 2;
+  const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  txt.setAttribute('x', labelX);
+  txt.setAttribute('y', labelY);
+  txt.setAttribute('text-anchor', 'middle');
+  txt.setAttribute('dominant-baseline', 'middle');
+  txt.setAttribute('fill', '#1d1d1f');
+  txt.setAttribute('font-size', '11');
+  txt.setAttribute('font-weight', '600');
+  txt.setAttribute('pointer-events', 'none');
+  txt.textContent = label;
+  g.appendChild(txt);
+
+  // 面积标注(底面下方)
+  const areaLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  areaLabel.setAttribute('x', (A.x + C.x) / 2);
+  areaLabel.setAttribute('y', Math.max(A.y, B.y, C.y, D.y) + 14);
+  areaLabel.setAttribute('text-anchor', 'middle');
+  areaLabel.setAttribute('fill', '#6e6e73');
+  areaLabel.setAttribute('font-size', '10');
+  areaLabel.setAttribute('pointer-events', 'none');
+  areaLabel.textContent = Math.round(h * w * d / 100).toLocaleString() + ' ㎡';
+  g.appendChild(areaLabel);
+
+  svg.appendChild(g);
+  return g;
+}
+
+function renderMassingSVG(blocks) {
+  const svg = document.getElementById('massing-svg');
+  svg.innerHTML = '';
+
+  if (!blocks || blocks.length === 0) {
+    svg.innerHTML = '<text x="500" y="250" text-anchor="middle" fill="#86868b" font-size="14">无数据</text>';
+    return;
+  }
+
+  // 计算宽度和高度
+  // 按面积开根号定宽度,固定 80
+  const maxArea = Math.max(...blocks.map(b => b.area_sqm));
+  const minArea = Math.min(...blocks.map(b => b.area_sqm));
+
+  // 单个方块宽度: 在 [60, 130] 区间,与面积开根号成正比
+  const W_MIN = 60, W_MAX = 130;
+  function calcW(area) {
+    if (maxArea === minArea) return 90;
+    const t = Math.sqrt((area - minArea) / (maxArea - minArea));  // 0~1
+    return W_MIN + t * (W_MAX - W_MIN);
+  }
+  // 高度: 面积开根号 * 系数
+  function calcH(area) {
+    if (maxArea === 0) return 30;
+    return 30 + Math.sqrt(area / maxArea) * 180;
+  }
+  // 深度: 固定 0.7 * 宽度
+  function calcD(w) { return w * 0.7; }
+
+  // 布局: 两行,前小后大,后排更高
+  // 先排第一行(底部)
+  const n = blocks.length;
+  const halfN = Math.ceil(n / 2);
+  // 计算每行最大宽度
+  const row1 = blocks.slice(0, halfN);
+  const row2 = blocks.slice(halfN);
+  const row1W = row1.reduce((s, b) => s + calcW(b.area_sqm) + 20, 0) - 20;
+  const row2W = row2.reduce((s, b) => s + calcW(b.area_sqm) + 20, 0) - 20;
+  const maxRowW = Math.max(row1W, row2W, 800);
+
+  // SVG viewBox 自适应
+  const VBW = Math.max(maxRowW + 100, 1000);
+  const VBH = 580;
+  svg.setAttribute('viewBox', `0 0 ${VBW} ${VBH}`);
+
+  // 渲染第一行
+  let cursorX = (VBW - row1W) / 2;
+  const row1Y = 420;
+  for (const b of row1) {
+    const w = calcW(b.area_sqm);
+    const h = calcH(b.area_sqm);
+    const d = calcD(w);
+    drawIsometricBox(svg, cursorX, row1Y, w, h, d, b.color, b.label);
+    cursorX += w + 20;
+  }
+
+  // 渲染第二行
+  if (row2.length > 0) {
+    let cursorX2 = (VBW - row2W) / 2;
+    const row2Y = 220;
+    for (const b of row2) {
+      const w = calcW(b.area_sqm);
+      const h = calcH(b.area_sqm);
+      const d = calcD(w);
+      drawIsometricBox(svg, cursorX2, row2Y, w, h, d, b.color, b.label);
+      cursorX2 += w + 20;
+    }
+  }
+
+  // 背景网格线(可选)
+  // 标题
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.setAttribute('x', VBW / 2);
+  t.setAttribute('y', 30);
+  t.setAttribute('text-anchor', 'middle');
+  t.setAttribute('fill', '#1d1d1f');
+  t.setAttribute('font-size', '13');
+  t.setAttribute('font-weight', '600');
+  t.textContent = `体块图 · 共 ${blocks.length} 类 · 总面积 ${Math.round(blocks.reduce((s,b) => s + b.area_sqm, 0)).toLocaleString()} ㎡`;
+  svg.appendChild(t);
+}
+
+function renderMassingList(blocks) {
+  const el = document.getElementById('massing-list');
+  if (!blocks || blocks.length === 0) {
+    el.innerHTML = '<div class="text-center text-[color:var(--text-3)] py-8 text-[13px]">无数据</div>';
+    return;
+  }
+  el.innerHTML = blocks.map((b, i) => {
+    const pct = b.pct.toFixed(1);
+    return `
+      <div class="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-black/5">
+        <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0" style="background:${b.color}"></span>
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-medium truncate">${b.label}</div>
+          <div class="text-[10px] text-[color:var(--text-3)] truncate">${b.source || b.code || ''}</div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-[12px] font-semibold tabular-nums">${Math.round(b.area_sqm).toLocaleString()} ㎡</div>
+          <div class="text-[10px] text-[color:var(--text-3)] tabular-nums">${pct}% · ${b.count} 项</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadMassing() {
+  await loadMassingOptions();
+  if (!Massing.target) {
+    // 选第一个
+    const sel = document.getElementById('massing-target-select');
+    if (sel.options.length > 0) {
+      Massing.target = sel.options[0].value;
+      sel.value = Massing.target;
+    }
+  }
+  await fetchMassing();
+}
+
+async function loadMassingOptions() {
+  const sel = document.getElementById('massing-target-select');
+  if (Massing.mode === 'case') {
+    document.getElementById('massing-select-label').textContent = '案例';
+    if (!State.cases || State.cases.length === 0) {
+      State.cases = await API.get('/api/cases');
+    }
+    sel.innerHTML = State.cases.map(c => `<option value="${c.code}">${c.country} · ${c.city} · ${c.name_zh}</option>`).join('');
+  } else {
+    document.getElementById('massing-select-label').textContent = '圈层';
+    if (!State.circles || State.circles.length === 0) {
+      State.circles = await API.get('/api/circles');
+    }
+    sel.innerHTML = State.circles.map(c => `<option value="${c.code}">${c.name_zh} (${c.walk_radius_m}m)</option>`).join('');
+  }
+  if (Massing.target) sel.value = Massing.target;
+}
+
+async function fetchMassing() {
+  if (!Massing.target) return;
+  const url = Massing.mode === 'case'
+    ? `/api/massing/cases/${Massing.target}`
+    : `/api/massing/circles/${Massing.target}`;
+  try {
+    const data = await API.get(url);
+    Massing.data = data;
+    let blocks = data.blocks.slice();
+    if (Massing.sortBy === 'count') {
+      blocks.sort((a, b) => b.count - a.count);
+    } else {
+      blocks.sort((a, b) => b.area_sqm - a.area_sqm);
+    }
+    // 重新算占比(基于当前排序)
+    const total = blocks.reduce((s, b) => s + b.area_sqm, 0);
+    blocks.forEach(b => b.pct = total > 0 ? b.area_sqm / total * 100 : 0);
+    renderMassingSVG(blocks);
+    renderMassingList(blocks);
+    // 统计
+    document.getElementById('massing-stat-blocks').textContent = blocks.length;
+    document.getElementById('massing-stat-area').textContent = Math.round(total).toLocaleString();
+    if (Massing.mode === 'case') {
+      document.getElementById('massing-stat-target').textContent = `${data.case_name}`;
+    } else {
+      document.getElementById('massing-stat-target').textContent = `${data.circle_name} · 半径 ${data.circle_meta.walk_radius_m}m`;
+    }
+    document.getElementById('massing-svg-title').textContent = Massing.mode === 'case' ? `${data.case_name} · 业态体块` : `${data.circle_name} · 配建体块`;
+  } catch (err) {
+    document.getElementById('massing-svg').innerHTML = `<text x="500" y="250" text-anchor="middle" fill="#d70015" font-size="14">加载失败: ${err.message}</text>`;
+  }
+}
+
+document.querySelectorAll('#massing-mode-case, #massing-mode-circle').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    document.querySelectorAll('#massing-mode-case, #massing-mode-circle').forEach(b => {
+      b.classList.remove('bg-white', 'shadow-sm', 'font-medium');
+      b.classList.add('text-[color:var(--text-2)]');
+    });
+    btn.classList.add('bg-white', 'shadow-sm', 'font-medium');
+    btn.classList.remove('text-[color:var(--text-2)]');
+    Massing.mode = btn.dataset.mode;
+    Massing.target = null;
+    await loadMassingOptions();
+    const sel = document.getElementById('massing-target-select');
+    if (sel.options.length > 0) {
+      Massing.target = sel.options[0].value;
+      sel.value = Massing.target;
+    }
+    await fetchMassing();
+  });
+});
+
+document.getElementById('massing-target-select').addEventListener('change', (e) => {
+  Massing.target = e.target.value;
+  fetchMassing();
+});
+
+document.getElementById('massing-sort-area').addEventListener('click', () => {
+  Massing.sortBy = 'area';
+  document.getElementById('massing-sort-area').className = 'px-2 py-1 rounded bg-black/5 text-[color:var(--text-1)]';
+  document.getElementById('massing-sort-count').className = 'px-2 py-1 rounded text-[color:var(--text-2)]';
+  fetchMassing();
+});
+document.getElementById('massing-sort-count').addEventListener('click', () => {
+  Massing.sortBy = 'count';
+  document.getElementById('massing-sort-count').className = 'px-2 py-1 rounded bg-black/5 text-[color:var(--text-1)]';
+  document.getElementById('massing-sort-area').className = 'px-2 py-1 rounded text-[color:var(--text-2)]';
+  fetchMassing();
 });
 
 // ============== 启动 ==============

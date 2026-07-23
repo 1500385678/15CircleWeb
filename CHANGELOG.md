@@ -1,5 +1,29 @@
 # 更新日志
 
+## v1.5.0 (2026-07-23)
+
+### 新增 - 业态体块分析页面
+第七个视图,用 isometric 3D 体块图可视化展示案例/圈层的业态配比与体量关系。
+
+**新增 API**
+- `GET /api/massing/cases/<code>` - 案例业态体块 (基于 case_projects + case_facilities)
+- `GET /api/massing/circles/<code>` - 圈层配建体块 (基于 facility_circle_map + facilities)
+
+**数据源**
+- 案例:case_projects 11 大类 (估算 100 ㎡/项目,如阿那亚) + case_facilities 38 条规范配建
+- 圈层:facility_circle_map JOIN facilities (recommended_area_sqm 聚合)
+
+**前端特性**
+- Isometric 投影 30° 3D 立方体 (顶/正/右 3 个面,不同色阶)
+- 高度∝面积开根号,宽度 [60, 130]px 区间自适应
+- 案例/圈层模式切换 + 目标选择器
+- 按面积/按数量两种排序
+- 联动:体块图 + 列表 + 占比统计卡片
+- 11 大类色彩映射 (苹果蓝/橙/紫/绿/青/红/粉/黄/灰)
+- 10 大一级分类色彩映射 (PUB/BIZ/CUL/TRN/GRN/MUN/GOV/SMT/SAF/OTH)
+
+---
+
 ## v1.4.0 (2026-07-23)
 
 ### 新增案例 (8 个国内外 15min/20min/完整社区 经典)
