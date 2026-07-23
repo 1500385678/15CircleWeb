@@ -4,6 +4,9 @@
 - 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
 - 启动:python app.py → http://localhost:5000
 """
+__version__ = "1.0.0"
+__updated__ = "2026-07-23"
+
 import sqlite3
 from pathlib import Path
 from flask import Flask, jsonify, request, render_template, abort
@@ -247,9 +250,10 @@ def api_standards():
 if __name__ == "__main__":
     print(f"")
     print(f"  ╔════════════════════════════════════════╗")
-    print(f"  ║  15CircleDb Web App                    ║")
+    print(f"  ║  15CircleDb Web App v{__version__:>20s} ║")
     print(f"  ║  http://localhost:5000                  ║")
     print(f"  ║  数据库: {DB.name:>30s} ║")
+    print(f"  ║  更新于: {__updated__:>30s} ║")
     print(f"  ╚════════════════════════════════════════╝")
     print(f"")
     app.run(host="0.0.0.0", port=5000, debug=False)
