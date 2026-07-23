@@ -202,15 +202,21 @@
     flex-direction: column;
     overflow: hidden;
   }
-  #stats-cards .card { padding: 10px 14px; }
-  #stats-cards .stat-num { font-size: 26px; }
-  #stats-cards .stat-label { font-size: 12px; margin-top: 2px; }
-  #stats-cards .card > div:last-child { font-size: 10px; margin-top: 0; }
+  #stats-cards { gap: 6px; }
+  #stats-cards .card { padding: 8px 10px; }
+  #stats-cards .stat-num { font-size: 20px; }
+  #stats-cards .stat-label { font-size: 11px; margin-top: 1px; }
+  #stats-cards .card > div:last-child { font-size: 9px; margin-top: 0; }
 
   /* dashboard 内紧凑行高 */
-  #cases-mini .min-row { padding: 4px 8px; }
-  #circles-table table tbody td { padding: 6px 8px; font-size: 13px; }
-  #circles-table table thead th { padding: 6px 8px; }
+  #cases-mini .min-row { padding: 2px 6px; }
+  #cases-mini .min-row > div:first-child > div:last-child { font-size: 10px; }
+  #circles-table table tbody td { padding: 4px 8px; font-size: 12px; }
+  #circles-table table thead th { padding: 4px 8px; font-size: 10px; }
+  /* dashboard 区块标题/内容压缩 */
+  #view-dashboard .card { padding: 10px 12px; }
+  #view-dashboard .card h3 { font-size: 12px !important; margin-bottom: 4px !important; }
+  #view-dashboard .card .btn-link { font-size: 11px; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -283,12 +289,12 @@
     <!-- 视图 1: 仪表盘 -->
     <section id="view-dashboard" class="view active">
       <!-- 标题行 -->
-      <div class="flex items-center justify-between mb-3 flex-shrink-0">
+      <div class="flex items-center justify-between mb-2 flex-shrink-0">
         <div>
-          <h2 style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; color: var(--text-1);">15 分钟生活圈</h2>
-          <p class="text-[12px] text-[color:var(--text-2)] mt-0.5">一个社区的完整配建指引 · 数据驱动 · 案例对照</p>
+          <h2 style="font-size: 18px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; color: var(--text-1);">15 分钟生活圈</h2>
+          <p class="text-[11px] text-[color:var(--text-2)] mt-0.5 leading-tight">一个社区的完整配建指引 · 数据驱动 · 案例对照</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <button class="btn btn-ghost" onclick="switchView('circles')">圈层配建 →</button>
           <button class="btn btn-dark" onclick="switchView('calculator')">配建计算器 →</button>
         </div>
