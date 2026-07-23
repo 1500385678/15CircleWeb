@@ -3,181 +3,331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>15CircleDb · 15分钟生活圈配套数据库</title>
+<title>15CircleDb · 15 分钟生活圈配套数据库</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
-  .nav-item { @apply flex items-center px-3 py-2 text-sm rounded-md transition-colors; }
-  .nav-item.active { @apply bg-blue-50 text-blue-700 font-medium; }
-  .nav-item:not(.active) { @apply text-slate-600 hover:bg-slate-50 hover:text-slate-900; }
-  .card { @apply bg-white border border-slate-200 rounded-lg shadow-sm; }
-  .priority-必配 { @apply bg-red-100 text-red-700 border-red-200; }
-  .priority-宜配 { @apply bg-amber-100 text-amber-700 border-amber-200; }
-  .priority-参考 { @apply bg-slate-100 text-slate-600 border-slate-200; }
-  .stat-card { @apply bg-white border border-slate-200 rounded-lg p-4 shadow-sm; }
-  .pill { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border; }
-  .skel { @apply animate-pulse bg-slate-100 rounded; }
+  :root {
+    --bg: #fbfbfd;
+    --surface: #ffffff;
+    --text-1: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #86868b;
+    --accent: #0066cc;
+    --accent-soft: #e8f0fe;
+    --border: rgba(0, 0, 0, 0.08);
+    --separator: rgba(0, 0, 0, 0.04);
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                 "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text-1);
+    letter-spacing: -0.01em;
+  }
+
+  /* === 毛玻璃 === */
+  .glass {
+    background: rgba(251, 251, 253, 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* === 顶栏 === */
+  .topbar {
+    height: 52px;
+    border-bottom: 1px solid var(--separator);
+  }
+  .topbar .logo {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #1d1d1f 0%, #424245 100%);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 600; font-size: 13px;
+    letter-spacing: -0.5px;
+  }
+
+  /* === 侧边栏 === */
+  .sidebar {
+    width: 220px;
+    border-right: 1px solid var(--separator);
+    background: rgba(251, 251, 253, 0.6);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px; font-weight: 500;
+    color: var(--text-2);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  .nav-item:hover { background: rgba(0, 0, 0, 0.04); color: var(--text-1); }
+  .nav-item.active { background: var(--text-1); color: #fff; }
+  .nav-item.active .nav-ico { color: #fff; }
+  .nav-ico { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-3); }
+  .nav-item:hover .nav-ico { color: var(--text-1); }
+
+  /* === 卡片 === */
+  .card {
+    background: var(--surface);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .card-soft { box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04); }
+
+  /* === 统计大数字 === */
+  .stat-num {
+    font-size: 48px; font-weight: 600; line-height: 1;
+    color: var(--text-1); letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: 13px; color: var(--text-2); font-weight: 500;
+    margin-top: 4px;
+  }
+
+  /* === 标题 === */
+  .h-display {
+    font-size: 40px; font-weight: 600; line-height: 1.1;
+    letter-spacing: -0.025em; color: var(--text-1);
+  }
+  .h-section {
+    font-size: 22px; font-weight: 600; letter-spacing: -0.02em;
+  }
+  .text-sub { color: var(--text-2); font-size: 14px; }
+
+  /* === 按钮 === */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 980px; font-size: 14px; font-weight: 500;
+    transition: all 0.15s ease; cursor: pointer; border: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #0055b3; }
+  .btn-dark { background: var(--text-1); color: #fff; }
+  .btn-dark:hover { background: #000; }
+  .btn-ghost { background: rgba(0, 0, 0, 0.05); color: var(--text-1); }
+  .btn-ghost:hover { background: rgba(0, 0, 0, 0.08); }
+  .btn-link { background: transparent; color: var(--accent); padding: 4px 0; }
+  .btn-link:hover { text-decoration: underline; }
+
+  /* === 输入 === */
+  .input {
+    width: 100%; padding: 10px 14px 10px 38px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 14px; color: var(--text-1);
+    transition: all 0.15s ease;
+  }
+  .input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px var(--accent-soft); }
+  .input-plain {
+    padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: #fff; font-size: 14px; color: var(--text-1);
+  }
+  .input-plain:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+
+  /* === 标签 === */
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 980px;
+    font-size: 12px; font-weight: 500;
+  }
+  .pill-必配 { background: rgba(255, 59, 48, 0.1); color: #d70015; }
+  .pill-宜配 { background: rgba(255, 149, 0, 0.12); color: #b25000; }
+  .pill-参考 { background: rgba(0, 0, 0, 0.06); color: var(--text-2); }
+
+  /* === 表格 === */
+  table.facility-table { font-size: 14px; width: 100%; border-collapse: collapse; }
+  table.facility-table th {
+    background: rgba(0, 0, 0, 0.02); color: var(--text-2);
+    font-weight: 500; text-align: center;
+    padding: 10px 12px; border-bottom: 1px solid var(--separator);
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  table.facility-table td {
+    padding: 14px 12px; border-bottom: 1px solid var(--separator);
+    color: var(--text-1); text-align: center; vertical-align: middle;
+  }
+  table.facility-table tr:hover td { background: rgba(0, 0, 0, 0.02); }
+  table.facility-table tr:last-child td { border-bottom: none; }
+
+  /* === 视图切换 === */
   .view { display: none; }
   .view.active { display: block; }
-  /* 图标 */
-  .ico { width: 18px; height: 18px; flex-shrink: 0; }
-  /* 滚动 */
+
+  /* === 滚动条 === */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-  /* 图表 canvas 充满父容器 */
+  ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+
+  /* === 图表 === */
   #chart-circle-facilities, #chart-category-dist { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
-  /* 表格 */
-  table.facility-table { font-size: 13px; }
-  table.facility-table th { @apply bg-slate-50 text-slate-600 font-medium text-center px-3 py-2 border-b border-slate-200; }
-  table.facility-table td { @apply px-3 py-2 border-b border-slate-100 text-center; }
-  table.facility-table tr:hover { @apply bg-slate-50; }
+
+  /* === 案例卡 === */
+  .case-card { transition: all 0.2s ease; }
+  .case-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06); }
+
+  /* === 数字圆点 === */
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-cn { background: #d70015; }
+  .dot-sg { background: #0066cc; }
+
+  /* === 模态 === */
+  .modal-back {
+    background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* === 适配小屏 === */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .h-display { font-size: 28px; }
+    .stat-num { font-size: 32px; }
+  }
 </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800">
+<body class="min-h-screen">
 
 <!-- 顶部条 -->
-<header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-  <div class="px-6 h-14 flex items-center justify-between">
+<header class="topbar glass fixed top-0 left-0 right-0 z-30">
+  <div class="h-full px-6 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-md flex items-center justify-center text-white text-xs font-bold">15</div>
+      <div class="logo">15</div>
       <div>
-        <h1 class="text-base font-semibold text-slate-900">15CircleDb</h1>
-        <p class="text-xs text-slate-500 -mt-0.5">15 分钟生活圈配套数据库</p>
+        <h1 class="text-[15px] font-semibold text-[color:var(--text-1)] leading-none">15CircleDb</h1>
+        <p class="text-[11px] text-[color:var(--text-3)] mt-0.5 leading-none">15 分钟生活圈配套数据库</p>
       </div>
     </div>
-    <div class="flex items-center gap-4">
-      <div class="relative">
-        <input id="global-search" type="text" placeholder="搜索设施、案例、分类..." 
-               class="w-72 pl-9 pr-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-        <svg class="absolute left-2.5 top-2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex items-center gap-3">
+      <div class="relative hidden sm:block">
+        <input id="global-search" type="text" placeholder="搜索设施、案例、分类…"
+               class="input w-72">
+        <svg class="absolute left-3 top-2.5 w-4 h-4 text-[color:var(--text-3)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
       </div>
-      <span id="db-version" class="text-xs text-slate-500"></span>
+      <span id="db-version" class="text-[12px] text-[color:var(--text-2)] tabular-nums"></span>
     </div>
   </div>
 </header>
 
-<div class="flex">
+<div class="flex pt-[52px]">
   <!-- 侧边栏 -->
-  <aside class="w-48 bg-white border-r border-slate-200 h-[calc(100vh-3.5rem)] sticky top-14 flex-shrink-0">
+  <aside class="sidebar h-[calc(100vh-52px)] sticky top-[52px] flex-shrink-0 overflow-y-auto">
     <nav class="p-3 space-y-0.5">
-      <a href="#" data-view="dashboard" class="nav-item active">
-        <svg class="ico mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <a class="nav-item active" data-view="dashboard">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         仪表盘
       </a>
-      <a href="#" data-view="circles" class="nav-item">
-        <svg class="ico mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      <a class="nav-item" data-view="circles">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         圈层配建
       </a>
-      <a href="#" data-view="calculator" class="nav-item">
-        <svg class="ico mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      <a class="nav-item" data-view="calculator">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
         配建计算器
       </a>
-      <a href="#" data-view="cases" class="nav-item">
-        <svg class="ico mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      <a class="nav-item" data-view="cases">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
         案例对比
       </a>
-      <a href="#" data-view="facilities" class="nav-item">
-        <svg class="ico mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+      <a class="nav-item" data-view="facilities">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
         设施库
       </a>
-      <a href="#" data-view="standards" class="nav-item">
-        <svg class="ico mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <a class="nav-item" data-view="standards">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         规范来源
       </a>
     </nav>
-    <div class="px-3 py-3 mt-4 border-t border-slate-100 text-xs text-slate-400">
-      <p>数据源: GB 50180 / 完整居住社区 / 上海导则 / 苏州园区 / 新加坡 URA</p>
+    <div class="px-5 py-4 mt-4 border-t border-[color:var(--separator)] text-[11px] text-[color:var(--text-3)] leading-relaxed">
+      <p>数据源</p>
+      <p class="mt-1">GB 50180 · 完整居住社区 · 上海导则 · 苏州园区 · 新加坡 URA</p>
     </div>
   </aside>
 
   <!-- 主区 -->
-  <main class="flex-1 p-4 overflow-x-auto">
+  <main class="flex-1 px-8 py-8 max-w-[1400px] mx-auto w-full">
 
-    <!-- 视图 1:仪表盘(单屏紧凑版) -->
+    <!-- 视图 1: 仪表盘 -->
     <section id="view-dashboard" class="view active">
-      <!-- 紧凑标题行 -->
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <h2 class="text-lg font-semibold text-slate-900">仪表盘</h2>
-          <p class="text-xs text-slate-500">数据库总览 · 单屏显示</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="switchView('circles')" class="text-xs px-3 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded">查看圈层配建 →</button>
-          <button onclick="switchView('calculator')" class="text-xs px-3 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded">配建计算器 →</button>
-        </div>
+      <div class="mb-8">
+        <h2 class="h-display">15 分钟生活圈</h2>
+        <p class="text-sub mt-2">一个社区的完整配建指引 · 数据驱动 · 案例对照</p>
       </div>
 
-      <!-- 单屏容器: 视口高度 - 头部 -->
-      <div class="grid grid-cols-12 grid-rows-[auto_1fr_1fr] gap-3" style="height: calc(100vh - 7rem);">
-        <!-- 5 张统计卡(占整宽,1 行) -->
-        <div class="col-span-12 grid grid-cols-5 gap-2" id="stats-cards"></div>
+      <!-- 5 张统计卡 -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6" id="stats-cards"></div>
 
-        <!-- 左列:案例 + 圈层(占 2 行) -->
-        <div class="col-span-7 row-span-2 grid grid-rows-2 gap-3">
-          <!-- 三地案例速览 -->
-          <div class="card p-3 flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between mb-2 flex-shrink-0">
-              <h3 class="text-xs font-semibold text-slate-700">三地案例速览</h3>
-              <button onclick="switchView('cases')" class="text-xs text-blue-600 hover:underline">全部 →</button>
-            </div>
-            <div id="cases-mini" class="space-y-1 overflow-y-auto flex-1"></div>
+      <!-- 单屏内容 -->
+      <div class="grid grid-cols-12 gap-4" style="min-height: 480px;">
+        <!-- 案例速览 -->
+        <div class="col-span-12 lg:col-span-7 card p-6 flex flex-col">
+          <div class="flex items-center justify-between mb-4 flex-shrink-0">
+            <h3 class="h-section">三地案例速览</h3>
+            <button class="btn-link" onclick="switchView('cases')">查看全部 →</button>
           </div>
-          <!-- 生活圈层级对照 -->
-          <div class="card p-3 flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between mb-2 flex-shrink-0">
-              <h3 class="text-xs font-semibold text-slate-700">生活圈层级对照</h3>
-            </div>
-            <div id="circles-table" class="overflow-y-auto flex-1"></div>
-          </div>
+          <div id="cases-mini" class="space-y-1 overflow-y-auto flex-1 -mx-2 px-2"></div>
         </div>
 
-        <!-- 右上:圈层设施柱状图 -->
-        <div class="col-span-5 card p-3 flex flex-col overflow-hidden">
-          <h3 class="text-xs font-semibold text-slate-700 mb-2 flex-shrink-0">各圈层必配设施数</h3>
-          <div class="flex-1 relative">
+        <!-- 圈层设施图 -->
+        <div class="col-span-12 lg:col-span-5 card p-6 flex flex-col">
+          <h3 class="h-section mb-4 flex-shrink-0">各圈层必配设施数</h3>
+          <div class="flex-1 relative" style="min-height: 200px;">
             <canvas id="chart-circle-facilities"></canvas>
           </div>
         </div>
 
-        <!-- 右下:设施分类饼图 -->
-        <div class="col-span-5 card p-3 flex flex-col overflow-hidden">
-          <h3 class="text-xs font-semibold text-slate-700 mb-2 flex-shrink-0">设施分类分布</h3>
-          <div class="flex-1 relative">
+        <!-- 圈层对照 -->
+        <div class="col-span-12 lg:col-span-7 card p-6 flex flex-col">
+          <h3 class="h-section mb-4">生活圈层级对照</h3>
+          <div id="circles-table" class="overflow-x-auto"></div>
+        </div>
+
+        <!-- 设施分类图 -->
+        <div class="col-span-12 lg:col-span-5 card p-6 flex flex-col">
+          <h3 class="h-section mb-4 flex-shrink-0">设施分类分布</h3>
+          <div class="flex-1 relative" style="min-height: 200px;">
             <canvas id="chart-category-dist"></canvas>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 视图 2:圈层配建 -->
+    <!-- 视图 2: 圈层配建 -->
     <section id="view-circles" class="view">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900">圈层配建清单</h2>
-          <p class="text-sm text-slate-500 mt-1">查看每个生活圈层应配/宜配的设施</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <select id="circles-circle-select" class="px-3 py-2 text-sm border border-slate-300 rounded-md focus:border-blue-500 focus:outline-none">
-            <option value="5min">5 分钟生活圈 (300m, 5000-12000人)</option>
-            <option value="10min">10 分钟生活圈 (500m, 15000-25000人)</option>
-            <option value="15min" selected>15 分钟生活圈 (800-1000m, 50000-100000人)</option>
-            <option value="30min">30 分钟生活圈(扩展)</option>
-            <option value="BLOCK">居住街坊 (2-4ha, 1000-3000人)</option>
-          </select>
-          <select id="circles-priority-select" class="px-3 py-2 text-sm border border-slate-300 rounded-md">
-            <option value="">全部</option>
-            <option value="必配">仅必配</option>
-            <option value="必配,宜配">必配 + 宜配</option>
-          </select>
-        </div>
+      <div class="mb-8">
+        <h2 class="h-display">圈层配建清单</h2>
+        <p class="text-sub mt-2">查看每个生活圈层应配 / 宜配的设施</p>
+      </div>
+      <div class="card p-4 mb-4 flex items-center gap-3 flex-wrap">
+        <select id="circles-circle-select" class="input-plain w-auto">
+          <option value="5min">5 分钟生活圈 (300m, 5-12k 人)</option>
+          <option value="10min">10 分钟生活圈 (500m, 15-25k 人)</option>
+          <option value="15min" selected>15 分钟生活圈 (800-1000m, 50-100k 人)</option>
+          <option value="30min">30 分钟生活圈 (扩展)</option>
+          <option value="BLOCK">居住街坊 (2-4ha, 1-3k 人)</option>
+        </select>
+        <select id="circles-priority-select" class="input-plain w-auto">
+          <option value="">全部</option>
+          <option value="必配">仅必配</option>
+          <option value="必配,宜配">必配 + 宜配</option>
+        </select>
+        <span class="ml-auto text-[13px] text-[color:var(--text-2)]" id="circles-count"></span>
       </div>
       <div class="card overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="facility-table w-full" id="circles-table-body">
+          <table class="facility-table" id="circles-table-body">
             <thead>
               <tr>
                 <th>优先级</th>
@@ -185,8 +335,8 @@
                 <th>设施名称</th>
                 <th>英文名</th>
                 <th>服务半径 (m)</th>
-                <th>单处最小面积 (㎡)</th>
-                <th>单处推荐面积 (㎡)</th>
+                <th>单处最小 (㎡)</th>
+                <th>单处推荐 (㎡)</th>
                 <th>占地要求</th>
                 <th>规范</th>
               </tr>
@@ -194,47 +344,41 @@
             <tbody></tbody>
           </table>
         </div>
-        <div class="px-4 py-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
-          <span id="circles-count"></span>
-          <span>数据源: GB 50180-2018 + 完整居住社区建设标准 + 案例参考</span>
-        </div>
       </div>
     </section>
 
-    <!-- 视图 3:配建计算器 -->
+    <!-- 视图 3: 配建计算器 -->
     <section id="view-calculator" class="view">
-      <div class="mb-6">
-        <h2 class="text-2xl font-bold text-slate-900">配建计算器</h2>
-        <p class="text-sm text-slate-500 mt-1">输入项目人口,自动反推 15min/10min 圈层配建清单与总面积</p>
+      <div class="mb-8">
+        <h2 class="h-display">配建计算器</h2>
+        <p class="text-sub mt-2">输入项目人口,自动反推 15min / 10min 圈层配建清单与总面积</p>
       </div>
 
-      <div class="card p-4 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div class="card p-6 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">服务人口</label>
+            <label class="block text-[12px] font-medium text-[color:var(--text-2)] mb-2">服务人口</label>
             <input id="calc-population" type="number" value="50000" min="1000" max="500000" step="1000"
-                   class="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:border-blue-500 focus:outline-none">
+                   class="input-plain">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">圈层</label>
-            <select id="calc-circles" multiple size="2" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-md">
+            <label class="block text-[12px] font-medium text-[color:var(--text-2)] mb-2">圈层</label>
+            <select id="calc-circles" multiple size="2" class="input-plain h-[42px]">
               <option value="5min">5 分钟</option>
               <option value="10min">10 分钟</option>
               <option value="15min" selected>15 分钟</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">配建优先级</label>
-            <select id="calc-priority" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-md">
+            <label class="block text-[12px] font-medium text-[color:var(--text-2)] mb-2">配建优先级</label>
+            <select id="calc-priority" class="input-plain">
               <option value="必配,宜配">必配 + 宜配</option>
               <option value="必配">仅必配</option>
               <option value="必配,宜配,参考">必配 + 宜配 + 参考</option>
             </select>
           </div>
           <div class="flex items-end">
-            <button id="calc-run" class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition">
-              计算
-            </button>
+            <button id="calc-run" class="btn btn-dark w-full justify-center">计算</button>
           </div>
         </div>
       </div>
@@ -245,7 +389,7 @@
       <!-- 结果表 -->
       <div class="card overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="facility-table w-full">
+          <table class="facility-table">
             <thead>
               <tr>
                 <th>圈层</th>
@@ -261,46 +405,44 @@
             <tbody id="calc-table-body"></tbody>
           </table>
         </div>
-        <div class="px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
+        <div class="px-5 py-3 text-[12px] text-[color:var(--text-3)] border-t border-[color:var(--separator)]">
           * 处数基于每处服务人口指标反推;面积基于单处推荐面积估算,实际需根据用地与规划条件调整
         </div>
       </div>
     </section>
 
-    <!-- 视图 4:案例对比 -->
+    <!-- 视图 4: 案例对比 -->
     <section id="view-cases" class="view">
-      <div class="mb-6">
-        <h2 class="text-2xl font-bold text-slate-900">案例对比</h2>
-        <p class="text-sm text-slate-500 mt-1">上海 / 苏州工业园区 / 新加坡 三地 15min 生活圈实践</p>
+      <div class="mb-8">
+        <h2 class="h-display">案例对比</h2>
+        <p class="text-sub mt-2">上海 / 苏州工业园区 / 新加坡 三地 15min 生活圈实践</p>
       </div>
-      <div class="flex items-center gap-2 mb-4">
-        <button data-country="中国" class="case-filter pill bg-blue-50 text-blue-700 border-blue-200">中国</button>
-        <button data-country="新加坡" class="case-filter pill bg-slate-50 text-slate-600 border-slate-200">新加坡</button>
-        <button data-country="" class="case-filter pill bg-slate-50 text-slate-600 border-slate-200">全部</button>
+      <div class="flex items-center gap-2 mb-6">
+        <button data-country="中国" class="case-filter pill pill-必配">中国</button>
+        <button data-country="新加坡" class="case-filter pill pill-参考">新加坡</button>
+        <button data-country="" class="case-filter pill pill-参考">全部</button>
       </div>
       <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
-    <!-- 视图 5:设施库 -->
+    <!-- 视图 5: 设施库 -->
     <section id="view-facilities" class="view">
-      <div class="mb-6 flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900">设施库</h2>
-          <p class="text-sm text-slate-500 mt-1">全部 68 个设施 + 36 个分类</p>
-        </div>
+      <div class="mb-8">
+        <h2 class="h-display">设施库</h2>
+        <p class="text-sub mt-2">全部 68 个设施 · 36 个分类</p>
       </div>
       <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-3">
-          <div class="card p-3 sticky top-20">
-            <h3 class="text-xs font-semibold text-slate-600 uppercase mb-2">分类</h3>
-            <ul id="cat-tree" class="space-y-0.5 text-sm"></ul>
+          <div class="card p-4 sticky top-20">
+            <h3 class="text-[12px] font-semibold text-[color:var(--text-2)] uppercase tracking-wider mb-3">分类</h3>
+            <ul id="cat-tree" class="space-y-0.5 text-[14px]"></ul>
           </div>
         </div>
         <div class="col-span-12 md:col-span-9">
           <div class="card overflow-hidden">
-            <div class="px-3 py-2 border-b border-slate-100 text-xs text-slate-500" id="facility-filter-info">全部设施</div>
+            <div class="px-4 py-3 border-b border-[color:var(--separator)] text-[13px] text-[color:var(--text-2)]" id="facility-filter-info">全部设施</div>
             <div class="overflow-x-auto">
-              <table class="facility-table w-full">
+              <table class="facility-table">
                 <thead>
                   <tr>
                     <th>编码</th>
@@ -321,24 +463,24 @@
       </div>
     </section>
 
-    <!-- 视图 6:规范来源 -->
+    <!-- 视图 6: 规范来源 -->
     <section id="view-standards" class="view">
-      <div class="mb-6">
-        <h2 class="text-2xl font-bold text-slate-900">规范来源</h2>
-        <p class="text-sm text-slate-500 mt-1">数据库所依据的 10 份规范文件</p>
+      <div class="mb-8">
+        <h2 class="h-display">规范来源</h2>
+        <p class="text-sub mt-2">数据库所依据的 10 份规范文件</p>
       </div>
-      <div id="standards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div id="standards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
   </main>
 </div>
 
 <!-- 全局搜索结果弹窗 -->
-<div id="search-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-40 flex items-start justify-center pt-24">
-  <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4 max-h-[70vh] overflow-hidden flex flex-col">
-    <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-      <h3 class="text-sm font-semibold">搜索结果</h3>
-      <button id="search-close" class="text-slate-400 hover:text-slate-600 text-xl">×</button>
+<div id="search-modal" class="hidden fixed inset-0 z-50 modal-back flex items-start justify-center pt-24">
+  <div class="card max-w-2xl w-full mx-4 max-h-[70vh] overflow-hidden flex flex-col">
+    <div class="px-5 py-4 border-b border-[color:var(--separator)] flex items-center justify-between">
+      <h3 class="text-[15px] font-semibold">搜索结果</h3>
+      <button id="search-close" class="text-[color:var(--text-3)] hover:text-[color:var(--text-1)] text-2xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5">×</button>
     </div>
     <div id="search-results" class="flex-1 overflow-y-auto p-3"></div>
   </div>
@@ -368,8 +510,7 @@ const API = {
 document.querySelectorAll('[data-view]').forEach(el => {
   el.addEventListener('click', (e) => {
     e.preventDefault();
-    const view = el.dataset.view;
-    switchView(view);
+    switchView(el.dataset.view);
   });
 });
 
@@ -379,7 +520,6 @@ function switchView(view) {
   document.getElementById(`view-${view}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelector(`[data-view="${view}"]`).classList.add('active');
-  // 加载数据
   if (view === 'dashboard') loadDashboard();
   if (view === 'circles') loadCircleFacilities();
   if (view === 'calculator') runCalculator();
@@ -394,21 +534,19 @@ async function loadDashboard() {
   State.stats = stats;
   document.getElementById('db-version').textContent = `Web v${stats.app_version} · DB v${stats.db_version} · ${stats.db_updated}`;
 
-  // 统计卡片(紧凑:1 行 5 个,数字大、label 小)
+  // 统计卡片 - 苹果风大数字
   const cards = [
-    { label: '规范来源', value: stats.standards, color: 'blue' },
-    { label: '生活圈层级', value: stats.life_circles, color: 'indigo' },
-    { label: '设施主表', value: stats.facilities, color: 'emerald' },
-    { label: '分类树', value: stats.categories, color: 'amber' },
-    { label: '案例项目', value: stats.cases, color: 'rose' },
+    { label: '规范来源',     sub: '国标 / 地方',  value: stats.standards,    color: 'var(--text-1)' },
+    { label: '生活圈层级',   sub: '街坊 / 5/10/15', value: stats.life_circles, color: '#0066cc' },
+    { label: '设施主表',     sub: '必配 / 宜配 / 参考', value: stats.facilities, color: '#1d1d1f' },
+    { label: '分类树',       sub: '36 个一级 + 子类', value: stats.categories, color: '#b25000' },
+    { label: '案例项目',     sub: '中国 / 新加坡',  value: stats.cases,        color: '#d70015' },
   ];
   document.getElementById('stats-cards').innerHTML = cards.map(c => `
-    <div class="card p-2 flex items-center justify-between">
-      <div>
-        <div class="text-[10px] text-slate-500 uppercase tracking-wide">${c.label}</div>
-        <div class="text-xs text-slate-400 mt-0.5">${c.label === '设施主表' ? '应配/宜配/参考' : c.label === '生活圈层级' ? '街坊/5/10/15min' : ''}</div>
-      </div>
-      <div class="text-3xl font-bold text-${c.color}-600 leading-none">${c.value}</div>
+    <div class="card p-5">
+      <div class="stat-num" style="color: ${c.color};">${c.value}</div>
+      <div class="stat-label">${c.label}</div>
+      <div class="text-[11px] text-[color:var(--text-3)] mt-1">${c.sub}</div>
     </div>
   `).join('');
 
@@ -422,55 +560,55 @@ async function loadDashboard() {
   drawCircleChart(circleData);
   drawCategoryChart();
 
-  // 案例速览(紧凑:显示全部 11 个,小字号)
+  // 案例速览
   const cases = await API.get('/api/cases');
   State.cases = cases;
   document.getElementById('cases-mini').innerHTML = cases.map(c => `
-    <div class="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer" data-case="${c.code}">
-      <div class="w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.country === '中国' ? 'bg-red-500' : 'bg-blue-500'}"></div>
-      <div class="flex-1 min-w-0 text-xs">
-        <div class="font-medium text-slate-800 truncate">${c.name_zh}</div>
+    <div class="flex items-center gap-3 px-2 py-2 hover:bg-black/5 rounded-lg cursor-pointer transition" data-case="${c.code}">
+      <span class="dot ${c.country === '中国' ? 'dot-cn' : 'dot-sg'}"></span>
+      <div class="flex-1 min-w-0">
+        <div class="text-[14px] font-medium text-[color:var(--text-1)] truncate">${c.name_zh}</div>
+        <div class="text-[12px] text-[color:var(--text-3)] truncate">${c.city || ''} ${c.district ? '· ' + c.district : ''}</div>
       </div>
-      <span class="text-[10px] text-slate-400 flex-shrink-0">${c.population ? (c.population/1000).toFixed(0)+'k' : '—'}</span>
+      <span class="text-[12px] text-[color:var(--text-2)] tabular-nums flex-shrink-0">${c.population ? (c.population/1000).toFixed(0)+'k 人' : '—'}</span>
     </div>
   `).join('');
 
-  // 圈层对照
+  // 圈层对照表
   document.getElementById('circles-table').innerHTML = `
-    <table class="w-full text-xs">
+    <table class="w-full text-[14px]">
       <thead>
-        <tr class="text-slate-500 border-b border-slate-200">
-          <th class="text-center py-1 font-medium">层级</th>
-          <th class="text-center font-medium">半径</th>
-          <th class="text-center font-medium">人口规模</th>
-          <th class="text-center font-medium">配建</th>
+        <tr class="border-b border-[color:var(--separator)]">
+          <th class="text-left py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">层级</th>
+          <th class="text-left py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">服务半径</th>
+          <th class="text-left py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">人口规模</th>
+          <th class="text-right py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">配建项数</th>
         </tr>
       </thead>
       <tbody>
         ${circles.map(c => `
-          <tr class="border-b border-slate-50">
-            <td class="py-1.5 font-medium text-center">${c.name_zh}</td>
-            <td class="text-center text-slate-600">${c.walk_radius_m ? c.walk_radius_m + 'm' : '—'}</td>
-            <td class="text-center text-slate-600">${c.population_min ? `${(c.population_min/1000).toFixed(0)}-${(c.population_max/1000).toFixed(0)}k` : '—'}</td>
-            <td class="text-center text-blue-600 font-medium" data-circle-count="${c.code}">—</td>
+          <tr class="border-b border-[color:var(--separator)] last:border-0">
+            <td class="py-3 font-medium">${c.name_zh}</td>
+            <td class="py-3 text-[color:var(--text-2)]">${c.walk_radius_m ? c.walk_radius_m + 'm' : '—'}</td>
+            <td class="py-3 text-[color:var(--text-2)]">${c.population_min ? `${(c.population_min/1000).toFixed(0)}-${(c.population_max/1000).toFixed(0)}k` : '—'}</td>
+            <td class="py-3 text-right tabular-nums" data-circle-count="${c.code}">—</td>
           </tr>
         `).join('')}
       </tbody>
     </table>
   `;
 
-  // 异步填入每个圈层的设施数
   circles.forEach(async c => {
     const fac = await API.get(`/api/circles/${c.code}/facilities`);
     const cell = document.querySelector(`[data-circle-count="${c.code}"]`);
-    if (cell) cell.textContent = fac.length + ' 项';
+    if (cell) {
+      cell.innerHTML = `<span class="text-[15px] font-semibold text-[color:var(--accent)]">${fac.length}</span> <span class="text-[12px] text-[color:var(--text-3)]">项</span>`;
+    }
   });
 
-  // 案例速览点击 → 切到案例页 + 弹详情
   document.querySelectorAll('#cases-mini [data-case]').forEach(el => {
     el.addEventListener('click', async () => {
-      const code = el.dataset.case;
-      const c = await API.get(`/api/cases/${code}`);
+      const c = await API.get(`/api/cases/${el.dataset.case}`);
       showCaseDetail(c);
     });
   });
@@ -487,19 +625,25 @@ function drawCircleChart(data) {
       datasets: [{
         label: '设施数',
         data: data.map(d => d.count),
-        backgroundColor: ['#3b82f6', '#6366f1', '#10b981', '#f59e0b', '#94a3b8'],
-        borderRadius: 3
+        backgroundColor: ['#0066cc', '#1d1d1f', '#d70015', '#b25000', '#86868b'],
+        borderRadius: 6,
+        barThickness: 32,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { titleFont: { size: 11 }, bodyFont: { size: 11 } }
+        tooltip: {
+          backgroundColor: 'rgba(29,29,31,0.95)',
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 12 },
+          padding: 8, cornerRadius: 8, displayColors: false,
+        }
       },
       scales: {
-        x: { ticks: { font: { size: 10 } }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } }, grid: { color: '#f1f5f9' } }
+        x: { ticks: { font: { size: 11, weight: '500' }, color: '#86868b' }, grid: { display: false }, border: { display: false } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: '#86868b' }, grid: { color: 'rgba(0,0,0,0.04)' }, border: { display: false } }
       }
     }
   });
@@ -508,16 +652,9 @@ function drawCircleChart(data) {
 let categoryChart = null;
 async function drawCategoryChart() {
   const cats = await API.get('/api/categories');
-  // 仅顶级
-  const topLevel = cats.map(c => ({
-    name: c.name_zh,
-    count: 1 + (c.children || []).reduce((s, ch) => s + (ch.children || []).length, 0)
-  }));
-  // 简化:统计每个顶级下所有设施
   const allFac = await API.get('/api/facilities');
   const facCount = {};
   allFac.forEach(f => {
-    // 通过 category 名称聚合
     const topName = getTopCategoryName(f.category_id, cats);
     facCount[topName] = (facCount[topName] || 0) + 1;
   });
@@ -530,14 +667,15 @@ async function drawCategoryChart() {
       labels: Object.keys(facCount),
       datasets: [{
         data: Object.values(facCount),
-        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#a855f7','#64748b'],
+        backgroundColor: ['#0066cc','#1d1d1f','#d70015','#b25000','#34c759','#5856d6','#ff9500','#8e8e93','#5ac8fa','#af52de'],
+        borderWidth: 0,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 8, padding: 4 } },
-        tooltip: { titleFont: { size: 11 }, bodyFont: { size: 11 } }
+        legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 8, padding: 6, color: '#6e6e73' } },
+        tooltip: { backgroundColor: 'rgba(29,29,31,0.95)', titleFont: { size: 12 }, bodyFont: { size: 12 }, padding: 8, cornerRadius: 8 }
       },
       cutout: '60%'
     }
@@ -564,7 +702,7 @@ async function loadCircleFacilities() {
 
   const tbody = document.querySelector('#circles-table-body tbody');
   if (!facs.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-400 py-8">该圈层暂无数据</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-[color:var(--text-3)] py-12">该圈层暂无数据</td></tr>';
     return;
   }
   tbody.innerHTML = facs.map(f => {
@@ -574,15 +712,15 @@ async function loadCircleFacilities() {
     if (f.can_be_combined) land.push('可合设');
     return `
       <tr>
-        <td><span class="pill priority-${f.priority}">${f.priority}</span></td>
-        <td class="text-slate-600">${f.category}</td>
+        <td><span class="pill pill-${f.priority}">${f.priority}</span></td>
+        <td class="text-[color:var(--text-2)]">${f.category}</td>
         <td class="font-medium">${f.name_zh}</td>
-        <td class="text-slate-500 text-xs">${f.name_en || ''}</td>
-        <td class="text-right">${f.service_radius_min || ''}–${f.service_radius_max || ''}</td>
-        <td class="text-right">${f.min_area_sqm ? f.min_area_sqm.toLocaleString() : '—'}</td>
-        <td class="text-right">${f.recommended_area_sqm ? f.recommended_area_sqm.toLocaleString() : '—'}</td>
-        <td class="text-xs">${land.join(' / ') || '—'}</td>
-        <td class="text-xs text-slate-500">${f.standard_source || ''}</td>
+        <td class="text-[color:var(--text-3)] text-[12px]">${f.name_en || ''}</td>
+        <td class="tabular-nums">${f.service_radius_min || ''}–${f.service_radius_max || ''}</td>
+        <td class="tabular-nums text-[color:var(--text-2)]">${f.min_area_sqm ? f.min_area_sqm.toLocaleString() : '—'}</td>
+        <td class="tabular-nums font-medium">${f.recommended_area_sqm ? f.recommended_area_sqm.toLocaleString() : '—'}</td>
+        <td class="text-[12px] text-[color:var(--text-2)]">${land.join(' / ') || '—'}</td>
+        <td class="text-[12px] text-[color:var(--text-3)]">${f.standard_source || ''}</td>
       </tr>
     `;
   }).join('');
@@ -600,42 +738,40 @@ async function runCalculator() {
   const priority = document.getElementById('calc-priority').value;
   const data = await API.get(`/api/calculate?population=${population}&circles=${circles}&priority=${encodeURIComponent(priority)}`);
 
-  // 摘要
   document.getElementById('calc-summary').innerHTML = `
-    <div class="stat-card">
-      <div class="text-xs text-slate-500">服务人口</div>
-      <div class="text-xl font-bold text-slate-900">${data.input.population.toLocaleString()}</div>
+    <div class="card p-5">
+      <div class="text-[12px] text-[color:var(--text-2)]">服务人口</div>
+      <div class="text-[28px] font-semibold tabular-nums mt-1">${data.input.population.toLocaleString()}</div>
     </div>
-    <div class="stat-card">
-      <div class="text-xs text-slate-500">设施类型</div>
-      <div class="text-xl font-bold text-blue-600">${data.summary.total_facility_types}</div>
+    <div class="card p-5">
+      <div class="text-[12px] text-[color:var(--text-2)]">设施类型</div>
+      <div class="text-[28px] font-semibold text-[color:var(--accent)] tabular-nums mt-1">${data.summary.total_facility_types}</div>
     </div>
-    <div class="stat-card">
-      <div class="text-xs text-slate-500">总建筑 (㎡)</div>
-      <div class="text-xl font-bold text-emerald-600">${data.summary.total_area_sqm.toLocaleString()}</div>
+    <div class="card p-5">
+      <div class="text-[12px] text-[color:var(--text-2)]">总建筑 (㎡)</div>
+      <div class="text-[28px] font-semibold tabular-nums mt-1">${data.summary.total_area_sqm.toLocaleString()}</div>
     </div>
-    <div class="stat-card">
-      <div class="text-xs text-slate-500">总用地 (㎡)</div>
-      <div class="text-xl font-bold text-amber-600">${data.summary.total_land_sqm.toLocaleString()}</div>
+    <div class="card p-5">
+      <div class="text-[12px] text-[color:var(--text-2)]">总用地 (㎡)</div>
+      <div class="text-[28px] font-semibold tabular-nums mt-1">${data.summary.total_land_sqm.toLocaleString()}</div>
     </div>
   `;
 
-  // 表
   const tbody = document.getElementById('calc-table-body');
   if (!data.items.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-slate-400 py-8">无结果</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-[color:var(--text-3)] py-12">无结果</td></tr>';
     return;
   }
   tbody.innerHTML = data.items.map(r => `
     <tr>
-      <td><span class="text-xs text-slate-500">${r.circle}</span></td>
-      <td class="text-slate-600">${r.category}</td>
+      <td class="text-[12px] text-[color:var(--text-2)]">${r.circle}</td>
+      <td class="text-[color:var(--text-2)]">${r.category}</td>
       <td class="font-medium">${r.name_zh}</td>
-      <td><span class="pill priority-${r.priority}">${r.priority}</span></td>
-      <td class="text-right font-bold text-blue-600">${r.required_count}</td>
-      <td class="text-right text-slate-600">${r.per_unit_area.toLocaleString()}</td>
-      <td class="text-right font-medium">${r.total_area.toLocaleString()}</td>
-      <td class="text-right text-slate-600">${r.walk_radius_m || '—'}</td>
+      <td><span class="pill pill-${r.priority}">${r.priority}</span></td>
+      <td class="tabular-nums font-semibold text-[color:var(--accent)]">${r.required_count}</td>
+      <td class="tabular-nums text-[color:var(--text-2)]">${r.per_unit_area.toLocaleString()}</td>
+      <td class="tabular-nums font-medium">${r.total_area.toLocaleString()}</td>
+      <td class="tabular-nums text-[color:var(--text-2)]">${r.walk_radius_m || '—'}</td>
     </tr>
   `).join('');
 }
@@ -645,26 +781,26 @@ async function loadCases(country = '') {
   const url = country ? `/api/cases?country=${encodeURIComponent(country)}` : '/api/cases';
   const cases = await API.get(url);
   document.getElementById('cases-grid').innerHTML = cases.map(c => `
-    <div class="card p-4 hover:shadow-md transition cursor-pointer" data-case="${c.code}">
-      <div class="flex items-start justify-between mb-2">
-        <h3 class="text-sm font-semibold text-slate-900">${c.name_zh}</h3>
-        <span class="text-xs text-slate-400">${c.year || ''}</span>
+    <div class="card case-card p-5 cursor-pointer" data-case="${c.code}">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="text-[16px] font-semibold">${c.name_zh}</div>
+          <div class="text-[12px] text-[color:var(--text-3)] mt-1">${c.country} · ${c.city || ''} ${c.district ? '· ' + c.district : ''}</div>
+        </div>
+        <span class="text-[12px] text-[color:var(--text-3)] tabular-nums">${c.year || ''}</span>
       </div>
-      <div class="text-xs text-slate-500 mb-3">${c.country} · ${c.city || ''} ${c.district ? '· ' + c.district : ''}</div>
-      <p class="text-sm text-slate-700 line-clamp-3">${c.description || ''}</p>
-      <div class="mt-3 flex items-center gap-2 flex-wrap text-xs">
-        ${c.pilot_status ? `<span class="pill bg-blue-50 text-blue-700 border-blue-200">${c.pilot_status}</span>` : ''}
-        ${c.population ? `<span class="pill bg-slate-50 text-slate-600 border-slate-200">${c.population.toLocaleString()} 人</span>` : ''}
-        ${c.radius_m ? `<span class="pill bg-emerald-50 text-emerald-700 border-emerald-200">${c.radius_m}m</span>` : ''}
+      <p class="text-[14px] text-[color:var(--text-2)] leading-relaxed line-clamp-3">${c.description || ''}</p>
+      <div class="mt-4 flex items-center gap-2 flex-wrap">
+        ${c.pilot_status ? `<span class="pill pill-参考">${c.pilot_status}</span>` : ''}
+        ${c.population ? `<span class="pill pill-参考">${c.population.toLocaleString()} 人</span>` : ''}
+        ${c.radius_m ? `<span class="pill pill-参考">${c.radius_m}m</span>` : ''}
       </div>
     </div>
-  `).join('') || '<div class="text-slate-400 text-center py-8 col-span-3">无案例</div>';
+  `).join('') || '<div class="text-[color:var(--text-3)] text-center py-12 col-span-3">无案例</div>';
 
-  // 详情
   document.querySelectorAll('[data-case]').forEach(el => {
     el.addEventListener('click', async () => {
-      const code = el.dataset.case;
-      const c = await API.get(`/api/cases/${code}`);
+      const c = await API.get(`/api/cases/${el.dataset.case}`);
       showCaseDetail(c);
     });
   });
@@ -673,33 +809,31 @@ async function loadCases(country = '') {
 document.querySelectorAll('.case-filter').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.case-filter').forEach(b => {
-      b.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-200');
-      b.classList.add('bg-slate-50', 'text-slate-600', 'border-slate-200');
+      b.className = 'case-filter pill pill-参考';
     });
-    btn.classList.remove('bg-slate-50', 'text-slate-600', 'border-slate-200');
-    btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
+    btn.className = 'case-filter pill pill-必配';
     loadCases(btn.dataset.country);
   });
 });
 
 function showCaseDetail(c) {
   const html = `
-    <div class="space-y-2 text-sm">
-      <p class="text-slate-700">${c.description || ''}</p>
+    <div class="space-y-3 text-[14px]">
+      <p class="text-[color:var(--text-1)] leading-relaxed">${c.description || ''}</p>
       ${c.facilities && c.facilities.length ? `
-        <div class="mt-2">
-          <div class="text-xs font-semibold text-slate-500 mb-1">实际配建 (${c.facilities.length} 项)</div>
-          <ul class="text-xs space-y-1">
-            ${c.facilities.slice(0, 10).map(f => `
+        <div class="mt-3">
+          <div class="text-[12px] font-semibold text-[color:var(--text-2)] mb-2 uppercase tracking-wider">实际配建 (${c.facilities.length} 项)</div>
+          <ul class="text-[14px] space-y-1.5">
+            ${c.facilities.slice(0, 12).map(f => `
               <li class="flex items-center gap-2">
-                <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                <span class="w-1 h-1 bg-[color:var(--text-3)] rounded-full"></span>
                 <span>${f.facility_name}</span>
-                ${f.name_specific ? `<span class="text-slate-500">- ${f.name_specific}</span>` : ''}
-                ${f.total_area_sqm ? `<span class="text-slate-400">(${f.total_area_sqm.toLocaleString()}㎡)</span>` : ''}
+                ${f.name_specific ? `<span class="text-[color:var(--text-3)]">- ${f.name_specific}</span>` : ''}
+                ${f.total_area_sqm ? `<span class="text-[color:var(--text-3)] tabular-nums">(${f.total_area_sqm.toLocaleString()}㎡)</span>` : ''}
               </li>
             `).join('')}
           </ul>
-          ${c.facilities.length > 10 ? `<div class="text-xs text-slate-400 mt-1">... 共 ${c.facilities.length} 项</div>` : ''}
+          ${c.facilities.length > 12 ? `<div class="text-[12px] text-[color:var(--text-3)] mt-2">... 共 ${c.facilities.length} 项</div>` : ''}
         </div>
       ` : ''}
     </div>
@@ -722,17 +856,16 @@ async function loadFacilities() {
   if (!State.categories.length) {
     State.categories = await API.get('/api/categories');
   }
-  // 渲染分类树
   const tree = document.getElementById('cat-tree');
   tree.innerHTML = `
-    <li><a href="#" data-cat-id="" class="cat-item block px-2 py-1 text-blue-700 font-medium hover:bg-slate-50 rounded">全部</a></li>
+    <li><a href="#" data-cat-id="" class="cat-item block px-2 py-1.5 text-[color:var(--accent)] font-medium rounded-lg hover:bg-black/5">全部</a></li>
     ${State.categories.map(c => `
       <li>
-        <a href="#" data-cat-id="${c.id}" class="cat-item block px-2 py-1 text-slate-700 hover:bg-slate-50 rounded">${c.name_zh} <span class="text-xs text-slate-400">${(c.children||[]).length}</span></a>
+        <a href="#" data-cat-id="${c.id}" class="cat-item block px-2 py-1.5 text-[color:var(--text-1)] hover:bg-black/5 rounded-lg">${c.name_zh} <span class="text-[11px] text-[color:var(--text-3)]">${(c.children||[]).length}</span></a>
         ${(c.children || []).length ? `
-          <ul class="ml-3 mt-0.5 space-y-0.5 border-l border-slate-200 pl-2">
+          <ul class="ml-3 mt-0.5 space-y-0.5 border-l border-[color:var(--separator)] pl-2">
             ${c.children.map(ch => `
-              <li><a href="#" data-cat-id="${ch.id}" class="cat-item block px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-50 rounded">${ch.name_zh}</a></li>
+              <li><a href="#" data-cat-id="${ch.id}" class="cat-item block px-2 py-1 text-[12px] text-[color:var(--text-2)] hover:bg-black/5 rounded-lg">${ch.name_zh}</a></li>
             `).join('')}
           </ul>
         ` : ''}
@@ -743,8 +876,8 @@ async function loadFacilities() {
     a.addEventListener('click', async (e) => {
       e.preventDefault();
       State.currentCategory = a.dataset.catId || null;
-      tree.querySelectorAll('a').forEach(x => x.classList.remove('bg-slate-100', 'font-semibold'));
-      a.classList.add('bg-slate-100', 'font-semibold');
+      tree.querySelectorAll('a').forEach(x => x.classList.remove('bg-black/5', 'font-semibold'));
+      a.classList.add('bg-black/5', 'font-semibold');
       await loadFacilityList();
     });
   });
@@ -758,36 +891,35 @@ async function loadFacilityList() {
     State.currentCategory ? `已筛选: ${facs.length} 项` : `全部设施: ${facs.length} 项`;
   document.getElementById('facility-table-body').innerHTML = facs.map(f => `
     <tr>
-      <td class="font-mono text-xs">${f.code}</td>
+      <td class="font-mono text-[12px] text-[color:var(--text-3)]">${f.code}</td>
       <td class="font-medium">${f.name_zh}</td>
-      <td class="text-xs text-slate-500">${f.name_en || ''}</td>
-      <td class="text-slate-600">${f.category}</td>
-      <td><span class="pill priority-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${f.level || '—'}</span></td>
-      <td class="text-right">${f.service_radius_max || '—'}</td>
-      <td class="text-right">${f.recommended_area_sqm ? f.recommended_area_sqm.toLocaleString() : '—'}</td>
-      <td class="text-xs text-slate-500">${f.standard_source ? f.standard_source.split('+')[0] : ''}</td>
+      <td class="text-[12px] text-[color:var(--text-3)]">${f.name_en || ''}</td>
+      <td class="text-[color:var(--text-2)]">${f.category}</td>
+      <td><span class="pill pill-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${f.level || '—'}</span></td>
+      <td class="tabular-nums text-[color:var(--text-2)]">${f.service_radius_max || '—'}</td>
+      <td class="tabular-nums">${f.recommended_area_sqm ? f.recommended_area_sqm.toLocaleString() : '—'}</td>
+      <td class="text-[12px] text-[color:var(--text-3)]">${f.standard_source ? f.standard_source.split('+')[0] : ''}</td>
     </tr>
-  `).join('') || '<tr><td colspan="8" class="text-center text-slate-400 py-6">无数据</td></tr>';
+  `).join('') || '<tr><td colspan="8" class="text-center text-[color:var(--text-3)] py-12">无数据</td></tr>';
 }
 
 // ============== 规范 ==============
 async function loadStandards() {
   const stds = await API.get('/api/standards');
   document.getElementById('standards-grid').innerHTML = stds.map(s => `
-    <div class="card p-4">
+    <div class="card p-5">
       <div class="flex items-start justify-between mb-2">
-        <h3 class="text-sm font-semibold">${s.short_name}</h3>
-        <span class="text-xs px-2 py-0.5 rounded ${
-          s.level === '国家级' ? 'bg-red-100 text-red-700' :
-          s.level === '行业标准' ? 'bg-amber-100 text-amber-700' :
-          s.level === '地方级' ? 'bg-blue-100 text-blue-700' :
-          'bg-slate-100 text-slate-600'
+        <h3 class="text-[16px] font-semibold">${s.short_name}</h3>
+        <span class="pill ${
+          s.level === '国家级' ? 'pill-必配' :
+          s.level === '行业标准' ? 'pill-宜配' :
+          s.level === '地方级' ? 'pill-参考' : 'pill-参考'
         }">${s.level}</span>
       </div>
-      <div class="text-xs text-slate-500 mb-2">${s.code} · ${s.year} · ${s.issuer || ''}</div>
-      <div class="text-sm text-slate-700">${s.summary || ''}</div>
-      ${s.region ? `<div class="mt-2 text-xs text-slate-500">适用范围: ${s.region}</div>` : ''}
-      ${s.url ? `<a href="${s.url}" target="_blank" class="mt-2 inline-block text-xs text-blue-600 hover:underline">查看原文 →</a>` : ''}
+      <div class="text-[12px] text-[color:var(--text-3)] mb-3 tabular-nums">${s.code} · ${s.year} · ${s.issuer || ''}</div>
+      <div class="text-[14px] text-[color:var(--text-2)] leading-relaxed">${s.summary || ''}</div>
+      ${s.region ? `<div class="mt-3 text-[12px] text-[color:var(--text-3)]">适用范围: ${s.region}</div>` : ''}
+      ${s.url ? `<a href="${s.url}" target="_blank" class="mt-3 inline-block text-[13px] text-[color:var(--accent)] hover:underline">查看原文 →</a>` : ''}
     </div>
   `).join('');
 }
@@ -802,19 +934,19 @@ searchInput.addEventListener('input', () => {
   searchTimeout = setTimeout(async () => {
     const results = await API.get(`/api/search?q=${encodeURIComponent(q)}`);
     if (results.length === 0) {
-      showModal(`搜索: ${q}`, '<div class="text-center text-slate-400 py-6">无结果</div>');
+      showModal(`搜索: ${q}`, '<div class="text-center text-[color:var(--text-3)] py-12">无结果</div>');
       return;
     }
     const html = `
       <div class="space-y-1">
         ${results.map(f => `
-          <a href="#" data-fac="${f.id}" class="block px-3 py-2 hover:bg-slate-50 rounded">
+          <a href="#" class="block px-3 py-2.5 hover:bg-black/5 rounded-lg">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-sm font-medium">${f.name_zh}</div>
-                <div class="text-xs text-slate-500">${f.name_en || ''} · ${f.category}</div>
+                <div class="text-[14px] font-medium">${f.name_zh}</div>
+                <div class="text-[12px] text-[color:var(--text-3)]">${f.name_en || ''} · ${f.category}</div>
               </div>
-              <span class="pill priority-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${f.level || '—'}</span>
+              <span class="pill pill-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${f.level || '—'}</span>
             </div>
           </a>
         `).join('')}
