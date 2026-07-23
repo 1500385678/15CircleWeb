@@ -194,6 +194,23 @@
     .h-display { font-size: 28px; }
     .stat-num { font-size: 32px; }
   }
+
+  /* === 仪表盘单屏模式 === */
+  #view-dashboard.active {
+    height: calc(100vh - 52px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #stats-cards .card { padding: 10px 14px; }
+  #stats-cards .stat-num { font-size: 26px; }
+  #stats-cards .stat-label { font-size: 12px; margin-top: 2px; }
+  #stats-cards .card > div:last-child { font-size: 10px; margin-top: 0; }
+
+  /* dashboard 内紧凑行高 */
+  #cases-mini .min-row { padding: 4px 8px; }
+  #circles-table table tbody td { padding: 6px 8px; font-size: 13px; }
+  #circles-table table thead th { padding: 6px 8px; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -257,47 +274,54 @@
   </aside>
 
   <!-- 主区 -->
-  <main class="flex-1 px-8 py-8 max-w-[1400px] mx-auto w-full">
+  <main class="flex-1 px-8 py-4 max-w-[1400px] mx-auto w-full">
 
     <!-- 视图 1: 仪表盘 -->
     <section id="view-dashboard" class="view active">
-      <div class="mb-8">
-        <h2 class="h-display">15 分钟生活圈</h2>
-        <p class="text-sub mt-2">一个社区的完整配建指引 · 数据驱动 · 案例对照</p>
+      <!-- 标题行 -->
+      <div class="flex items-center justify-between mb-3 flex-shrink-0">
+        <div>
+          <h2 style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; color: var(--text-1);">15 分钟生活圈</h2>
+          <p class="text-[12px] text-[color:var(--text-2)] mt-0.5">一个社区的完整配建指引 · 数据驱动 · 案例对照</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-ghost" onclick="switchView('circles')">圈层配建 →</button>
+          <button class="btn btn-dark" onclick="switchView('calculator')">配建计算器 →</button>
+        </div>
       </div>
 
-      <!-- 5 张统计卡 -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6" id="stats-cards"></div>
+      <!-- 5 张统计卡(横排紧凑) -->
+      <div class="grid grid-cols-5 gap-2 mb-3 flex-shrink-0" id="stats-cards"></div>
 
-      <!-- 单屏内容 -->
-      <div class="grid grid-cols-12 gap-4" style="min-height: 480px;">
+      <!-- 4 块网格(占满剩余) -->
+      <div class="grid grid-cols-12 gap-3 flex-1 min-h-0">
         <!-- 案例速览 -->
-        <div class="col-span-12 lg:col-span-7 card p-6 flex flex-col">
-          <div class="flex items-center justify-between mb-4 flex-shrink-0">
-            <h3 class="h-section">三地案例速览</h3>
+        <div class="col-span-12 lg:col-span-7 card p-4 flex flex-col min-h-0">
+          <div class="flex items-center justify-between mb-2 flex-shrink-0">
+            <h3 style="font-size: 14px; font-weight: 600; color: var(--text-1);">三地案例速览</h3>
             <button class="btn-link" onclick="switchView('cases')">查看全部 →</button>
           </div>
-          <div id="cases-mini" class="space-y-1 overflow-y-auto flex-1 -mx-2 px-2"></div>
+          <div id="cases-mini" class="space-y-0 overflow-y-auto flex-1 -mx-1 px-1"></div>
         </div>
 
         <!-- 圈层设施图 -->
-        <div class="col-span-12 lg:col-span-5 card p-6 flex flex-col">
-          <h3 class="h-section mb-4 flex-shrink-0">各圈层必配设施数</h3>
-          <div class="flex-1 relative" style="min-height: 200px;">
+        <div class="col-span-12 lg:col-span-5 card p-4 flex flex-col min-h-0">
+          <h3 style="font-size: 14px; font-weight: 600; color: var(--text-1);" class="mb-2 flex-shrink-0">各圈层必配设施数</h3>
+          <div class="flex-1 relative min-h-0">
             <canvas id="chart-circle-facilities"></canvas>
           </div>
         </div>
 
         <!-- 圈层对照 -->
-        <div class="col-span-12 lg:col-span-7 card p-6 flex flex-col">
-          <h3 class="h-section mb-4">生活圈层级对照</h3>
-          <div id="circles-table" class="overflow-x-auto"></div>
+        <div class="col-span-12 lg:col-span-7 card p-4 flex flex-col min-h-0">
+          <h3 style="font-size: 14px; font-weight: 600; color: var(--text-1);" class="mb-2 flex-shrink-0">生活圈层级对照</h3>
+          <div id="circles-table" class="overflow-x-auto flex-1 min-h-0"></div>
         </div>
 
         <!-- 设施分类图 -->
-        <div class="col-span-12 lg:col-span-5 card p-6 flex flex-col">
-          <h3 class="h-section mb-4 flex-shrink-0">设施分类分布</h3>
-          <div class="flex-1 relative" style="min-height: 200px;">
+        <div class="col-span-12 lg:col-span-5 card p-4 flex flex-col min-h-0">
+          <h3 style="font-size: 14px; font-weight: 600; color: var(--text-1);" class="mb-2 flex-shrink-0">设施分类分布</h3>
+          <div class="flex-1 relative min-h-0">
             <canvas id="chart-category-dist"></canvas>
           </div>
         </div>
@@ -564,7 +588,7 @@ async function loadDashboard() {
   const cases = await API.get('/api/cases');
   State.cases = cases;
   document.getElementById('cases-mini').innerHTML = cases.map(c => `
-    <div class="flex items-center gap-3 px-2 py-2 hover:bg-black/5 rounded-lg cursor-pointer transition" data-case="${c.code}">
+    <div class="min-row flex items-center gap-2 hover:bg-black/5 rounded-md cursor-pointer transition" data-case="${c.code}">
       <span class="dot ${c.country === '中国' ? 'dot-cn' : 'dot-sg'}"></span>
       <div class="flex-1 min-w-0">
         <div class="text-[14px] font-medium text-[color:var(--text-1)] truncate">${c.name_zh}</div>
@@ -576,22 +600,22 @@ async function loadDashboard() {
 
   // 圈层对照表
   document.getElementById('circles-table').innerHTML = `
-    <table class="w-full text-[14px]">
+    <table class="w-full text-[13px]">
       <thead>
         <tr class="border-b border-[color:var(--separator)]">
-          <th class="text-left py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">层级</th>
-          <th class="text-left py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">服务半径</th>
-          <th class="text-left py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">人口规模</th>
-          <th class="text-right py-2 text-[12px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">配建项数</th>
+          <th class="text-left py-1.5 text-[11px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">层级</th>
+          <th class="text-left py-1.5 text-[11px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">服务半径</th>
+          <th class="text-left py-1.5 text-[11px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">人口规模</th>
+          <th class="text-right py-1.5 text-[11px] font-medium text-[color:var(--text-3)] uppercase tracking-wider">配建项数</th>
         </tr>
       </thead>
       <tbody>
         ${circles.map(c => `
           <tr class="border-b border-[color:var(--separator)] last:border-0">
-            <td class="py-3 font-medium">${c.name_zh}</td>
-            <td class="py-3 text-[color:var(--text-2)]">${c.walk_radius_m ? c.walk_radius_m + 'm' : '—'}</td>
-            <td class="py-3 text-[color:var(--text-2)]">${c.population_min ? `${(c.population_min/1000).toFixed(0)}-${(c.population_max/1000).toFixed(0)}k` : '—'}</td>
-            <td class="py-3 text-right tabular-nums" data-circle-count="${c.code}">—</td>
+            <td class="py-1.5 font-medium">${c.name_zh}</td>
+            <td class="py-1.5 text-[color:var(--text-2)]">${c.walk_radius_m ? c.walk_radius_m + 'm' : '—'}</td>
+            <td class="py-1.5 text-[color:var(--text-2)]">${c.population_min ? `${(c.population_min/1000).toFixed(0)}-${(c.population_max/1000).toFixed(0)}k` : '—'}</td>
+            <td class="py-1.5 text-right tabular-nums" data-circle-count="${c.code}">—</td>
           </tr>
         `).join('')}
       </tbody>
