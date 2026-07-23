@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# 数据库(运行时数据,不入库)
+*.db
+*.db-wal
+*.db-shm
+
+# 测试 / 临时
+test.txt
+*.log
+
+# 环境
+.env
+venv/
+.venv/
+env/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
