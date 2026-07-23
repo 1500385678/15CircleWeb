@@ -4,7 +4,7 @@
 - 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
 - 启动:python app.py → http://localhost:5000
 """
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __updated__ = "2026-07-23"
 
 import sqlite3
