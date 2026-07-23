@@ -209,10 +209,12 @@
   #stats-cards .card > div:last-child { font-size: 9px; margin-top: 0; }
 
   /* dashboard 内紧凑行高 */
-  #cases-mini .min-row { padding: 2px 6px; }
-  #cases-mini .min-row > div:first-child > div:last-child { font-size: 10px; }
-  #circles-table table tbody td { padding: 4px 8px; font-size: 12px; }
-  #circles-table table thead th { padding: 4px 8px; font-size: 10px; }
+  #cases-mini .min-row { padding: 1px 5px; }
+  #cases-mini .min-row > div:first-child > div:first-child { font-size: 12px; }
+  #cases-mini .min-row > div:first-child > div:last-child { font-size: 9px; }
+  #cases-mini .min-row > span:last-child { font-size: 10px; }
+  #circles-table table tbody td { padding: 3px 8px; font-size: 11px; }
+  #circles-table table thead th { padding: 3px 8px; font-size: 9px; }
   /* dashboard 区块标题/内容压缩 */
   #view-dashboard .card { padding: 10px 12px; }
   #view-dashboard .card h3 { font-size: 12px !important; margin-bottom: 4px !important; }
@@ -730,24 +732,26 @@ function drawCircleChart(data) {
         label: '设施数',
         data: data.map(d => d.count),
         backgroundColor: ['#0066cc', '#1d1d1f', '#d70015', '#b25000', '#86868b'],
-        borderRadius: 6,
-        barThickness: 32,
+        borderRadius: 4,
+        barThickness: 18,
+        maxBarThickness: 22,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: { left: 0, right: 0, top: 4, bottom: 0 } },
       plugins: {
         legend: { display: false },
         tooltip: {
           backgroundColor: 'rgba(29,29,31,0.95)',
-          titleFont: { size: 12, weight: '600' },
-          bodyFont: { size: 12 },
-          padding: 8, cornerRadius: 8, displayColors: false,
+          titleFont: { size: 11, weight: '600' },
+          bodyFont: { size: 11 },
+          padding: 6, cornerRadius: 6, displayColors: false,
         }
       },
       scales: {
-        x: { ticks: { font: { size: 11, weight: '500' }, color: '#86868b' }, grid: { display: false }, border: { display: false } },
-        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: '#86868b' }, grid: { color: 'rgba(0,0,0,0.04)' }, border: { display: false } }
+        x: { ticks: { font: { size: 9, weight: '500' }, color: '#86868b' }, grid: { display: false }, border: { display: false } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 9 }, color: '#86868b', padding: 4 }, grid: { color: 'rgba(0,0,0,0.04)' }, border: { display: false } }
       }
     }
   });
