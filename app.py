@@ -4,7 +4,7 @@
 - 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
 - 启动:python app.py → http://localhost:5000
 """
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __updated__ = "2026-07-23"
 
 import sqlite3
@@ -50,8 +50,10 @@ def api_stats():
         "facility_map":    query("SELECT COUNT(*) c FROM facility_circle_map")[0]["c"],
         "cases":           query("SELECT COUNT(*) c FROM cases")[0]["c"],
         "case_facilities": query("SELECT COUNT(*) c FROM case_facilities")[0]["c"],
-        "version":         query("SELECT value FROM db_meta WHERE key='schema_version'")[0]["value"],
-        "updated_at":      query("SELECT value FROM db_meta WHERE key='last_seed_date'")[0]["value"],
+        "app_version":     __version__,
+        "app_updated":      __updated__,
+        "db_version":      query("SELECT value FROM db_meta WHERE key='schema_version'")[0]["value"],
+        "db_updated":      query("SELECT value FROM db_meta WHERE key='last_seed_date'")[0]["value"],
     })
 
 @app.route("/api/circles")

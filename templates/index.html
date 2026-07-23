@@ -392,7 +392,7 @@ function switchView(view) {
 async function loadDashboard() {
   const stats = await API.get('/api/stats');
   State.stats = stats;
-  document.getElementById('db-version').textContent = `v${stats.version} · ${stats.updated_at}`;
+  document.getElementById('db-version').textContent = `Web v${stats.app_version} · DB v${stats.db_version} · ${stats.db_updated}`;
 
   // 统计卡片(紧凑:1 行 5 个,数字大、label 小)
   const cards = [
