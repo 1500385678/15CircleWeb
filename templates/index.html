@@ -595,6 +595,7 @@ async function loadDashboard() {
         <div class="text-[12px] text-[color:var(--text-3)] truncate">${c.city || ''} ${c.district ? '· ' + c.district : ''}</div>
       </div>
       <span class="text-[12px] text-[color:var(--text-2)] tabular-nums flex-shrink-0">${c.population ? (c.population/1000).toFixed(0)+'k 人' : '—'}</span>
+      ${c.projects_count > 0 ? `<span class="text-[10px] text-[color:var(--text-3)] flex-shrink-0 tabular-nums">· ${c.projects_count}项目</span>` : ''}
     </div>
   `).join('');
 
@@ -818,6 +819,7 @@ async function loadCases(country = '') {
         ${c.pilot_status ? `<span class="pill pill-参考">${c.pilot_status}</span>` : ''}
         ${c.population ? `<span class="pill pill-参考">${c.population.toLocaleString()} 人</span>` : ''}
         ${c.radius_m ? `<span class="pill pill-参考">${c.radius_m}m</span>` : ''}
+        ${c.projects_count > 0 ? `<span class="pill pill-宜配" title="运营生态具体项目">🌿 ${c.projects_count} 项目</span>` : ''}
       </div>
     </div>
   `).join('') || '<div class="text-[color:var(--text-3)] text-center py-12 col-span-3">无案例</div>';
@@ -841,25 +843,60 @@ document.querySelectorAll('.case-filter').forEach(btn => {
 });
 
 function showCaseDetail(c) {
+  // 实际配建(关联到设施库)
+  const facBlock = c.facilities && c.facilities.length ? `
+    <div class="mt-4">
+      <div class="text-[12px] font-semibold text-[color:var(--text-2)] mb-2 uppercase tracking-wider">实际配建 · 规范类 (${c.facilities.length} 项)</div>
+      <ul class="text-[14px] space-y-1.5">
+        ${c.facilities.slice(0, 12).map(f => `
+          <li class="flex items-center gap-2">
+            <span class="w-1 h-1 bg-[color:var(--text-3)] rounded-full"></span>
+            <span>${f.facility_name}</span>
+            ${f.name_specific ? `<span class="text-[color:var(--text-3)]">- ${f.name_specific}</span>` : ''}
+            ${f.total_area_sqm ? `<span class="text-[color:var(--text-3)] tabular-nums">(${f.total_area_sqm.toLocaleString()}㎡)</span>` : ''}
+          </li>
+        `).join('')}
+      </ul>
+      ${c.facilities.length > 12 ? `<div class="text-[12px] text-[color:var(--text-3)] mt-2">... 共 ${c.facilities.length} 项</div>` : ''}
+    </div>
+  ` : '';
+
+  // 运营生态项目(阿那亚等)
+  let projBlock = '';
+  if (c.projects && c.projects.length) {
+    // 按类目分组
+    const byCat = {};
+    c.projects.forEach(p => {
+      (byCat[p.category] = byCat[p.category] || []).push(p);
+    });
+    const cats = Object.entries(byCat).sort((a, b) => b[1].length - a[1].length);
+    projBlock = `
+      <div class="mt-5">
+        <div class="text-[12px] font-semibold text-[color:var(--text-2)] mb-3 uppercase tracking-wider">运营生态 · 具体项目 (${c.projects.length} 项 / ${cats.length} 类)</div>
+        <div class="space-y-3">
+          ${cats.map(([cat, items]) => `
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-[13px] font-semibold text-[color:var(--text-1)]">${cat}</span>
+                <span class="text-[11px] text-[color:var(--text-3)] tabular-nums">${items.length} 项</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                ${items.map(it => `
+                  <span class="inline-flex items-center px-2 py-0.5 text-[12px] bg-black/5 text-[color:var(--text-2)] rounded-full">${it.name}</span>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   const html = `
     <div class="space-y-3 text-[14px]">
       <p class="text-[color:var(--text-1)] leading-relaxed">${c.description || ''}</p>
-      ${c.facilities && c.facilities.length ? `
-        <div class="mt-3">
-          <div class="text-[12px] font-semibold text-[color:var(--text-2)] mb-2 uppercase tracking-wider">实际配建 (${c.facilities.length} 项)</div>
-          <ul class="text-[14px] space-y-1.5">
-            ${c.facilities.slice(0, 12).map(f => `
-              <li class="flex items-center gap-2">
-                <span class="w-1 h-1 bg-[color:var(--text-3)] rounded-full"></span>
-                <span>${f.facility_name}</span>
-                ${f.name_specific ? `<span class="text-[color:var(--text-3)]">- ${f.name_specific}</span>` : ''}
-                ${f.total_area_sqm ? `<span class="text-[color:var(--text-3)] tabular-nums">(${f.total_area_sqm.toLocaleString()}㎡)</span>` : ''}
-              </li>
-            `).join('')}
-          </ul>
-          ${c.facilities.length > 12 ? `<div class="text-[12px] text-[color:var(--text-3)] mt-2">... 共 ${c.facilities.length} 项</div>` : ''}
-        </div>
-      ` : ''}
+      ${facBlock}
+      ${projBlock}
     </div>
   `;
   showModal(c.name_zh, html);

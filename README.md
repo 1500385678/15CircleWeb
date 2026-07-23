@@ -49,7 +49,7 @@ _commit_push.bat "修复仪表盘布局"
 └── README.md
 ```
 
-## API 端点(10 个)
+## API 端点(11 个)
 
 | 端点 | 方法 | 说明 |
 |---|---|---|
@@ -57,8 +57,9 @@ _commit_push.bat "修复仪表盘布局"
 | `/api/circles` | GET | 5 级生活圈 |
 | `/api/circles/<code>/facilities` | GET | 圈层配建清单 |
 | `/api/calculate` | GET | 反推配建计算 |
-| `/api/cases` | GET | 案例列表 |
-| `/api/cases/<code>` | GET | 案例详情 |
+| `/api/cases` | GET | 案例列表(含 `facilities_count` / `projects_count`) |
+| `/api/cases/<code>` | GET | 案例详情(含 `facilities` / `projects`) |
+| `/api/cases/<code>/projects` | GET | 案例项目清单(按类目分组) |
 | `/api/categories` | GET | 分类树 |
 | `/api/facilities` | GET | 设施列表 |
 | `/api/search` | GET | 关键词搜索 |

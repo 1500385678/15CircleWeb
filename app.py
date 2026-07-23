@@ -4,7 +4,7 @@
 - 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
 - 启动:python app.py → http://localhost:5000
 """
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 __updated__ = "2026-07-23"
 
 import sqlite3
@@ -50,6 +50,7 @@ def api_stats():
         "facility_map":    query("SELECT COUNT(*) c FROM facility_circle_map")[0]["c"],
         "cases":           query("SELECT COUNT(*) c FROM cases")[0]["c"],
         "case_facilities": query("SELECT COUNT(*) c FROM case_facilities")[0]["c"],
+        "case_projects":   query("SELECT COUNT(*) c FROM case_projects")[0]["c"],
         "app_version":     __version__,
         "app_updated":      __updated__,
         "db_version":      query("SELECT value FROM db_meta WHERE key='schema_version'")[0]["value"],
@@ -164,12 +165,15 @@ def api_calculate():
 @app.route("/api/cases")
 def api_cases():
     country = request.args.get("country", "")
-    sql = "SELECT * FROM cases"
+    sql = """SELECT c.*,
+                    (SELECT COUNT(*) FROM case_facilities cf WHERE cf.case_id = c.id) AS facilities_count,
+                    (SELECT COUNT(*) FROM case_projects  cp WHERE cp.case_id = c.id) AS projects_count
+             FROM cases c"""
     args = []
     if country:
-        sql += " WHERE country = ?"
+        sql += " WHERE c.country = ?"
         args.append(country)
-    sql += " ORDER BY country, city, year"
+    sql += " ORDER BY c.country, c.city, c.year"
     return jsonify(query(sql, args))
 
 @app.route("/api/cases/<code>")
@@ -186,7 +190,43 @@ def api_case_detail(code):
         WHERE cf.case_id = ?
         ORDER BY c.sort_order, f.sort_order
     """, [case["id"]])
+    # 运营生态项目(阿那亚等具体商户清单)
+    case["projects"] = query("""
+        SELECT id, category, name, description, tags
+        FROM case_projects
+        WHERE case_id = ?
+        ORDER BY category, sort_order
+    """, [case["id"]])
     return jsonify(case)
+
+@app.route("/api/cases/<code>/projects")
+def api_case_projects(code):
+    case = query("SELECT id, name_zh FROM cases WHERE code = ?", [code], one=True)
+    if not case:
+        abort(404)
+    rows = query("""
+        SELECT id, category, name, description, tags, sort_order
+        FROM case_projects
+        WHERE case_id = ?
+        ORDER BY category, sort_order
+    """, [case["id"]])
+    # 按类目分组
+    grouped = {}
+    for r in rows:
+        grouped.setdefault(r["category"], []).append({
+            "id": r["id"],
+            "name": r["name"],
+            "description": r["description"],
+            "tags": r["tags"],
+        })
+    summary = [{"category": k, "count": len(v), "items": v} for k, v in grouped.items()]
+    summary.sort(key=lambda x: -x["count"])
+    return jsonify({
+        "case_code": code,
+        "case_name": case["name_zh"],
+        "total": len(rows),
+        "categories": summary,
+    })
 
 @app.route("/api/categories")
 def api_categories():
