@@ -1,0 +1,18 @@
+v1.5.3 — Bugfix: 修复 app.py DB 路径在嵌套部署下找不到 15circledb.db
+
+## 修复
+- `app.py` 第 14-16 行: DB 路径从 `BASE.parent / "15circledb.db"` 改为
+  优先匹配 `BASE.parent`,失败回退 `BASE.parent.parent`,适应两种部署:
+  - 仓库根目录跑 → `webapp/app.py` + `15circledb.db` 同级 ✓
+  - 嵌套目录跑 → `_scratch/webapp/app.py` + `_scratch/../15circledb.db` ✓
+
+## 触发场景
+之前 `/api/stats`、`/api/cases` 等所有 API 返回 500:
+```
+sqlite3.OperationalError: no such table: standards
+```
+但首页 `/` 能返回(因为只读 templates)。本地调试入口 → 修复后 API 全部 200。
+
+## 版本
+- App: v1.5.2 → v1.5.3
+- DB: v1.0.0(无变化)
