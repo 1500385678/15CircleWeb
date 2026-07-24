@@ -1,5 +1,14 @@
 # 更新日志
 
+## v1.5.3 (2026-07-24)
+
+### 修复 - DB 路径在嵌套部署下找不到 15circledb.db
+- `app.py`: DB 路径从 `BASE.parent / "15circledb.db"` 改为双候选(`BASE.parent` 优先,失败回退 `BASE.parent.parent`)
+- 触发场景: 之前 `/api/stats`、`/api/cases` 等所有 API 返回 500 (`sqlite3.OperationalError: no such table`),首页正常
+- 适用两种部署: 仓库根目录跑 OR 嵌套 `_scratch/webapp/` 跑
+
+---
+
 ## v1.5.2 (2026-07-23)
 
 ### 修复 - 案例速览 + 圈层柱状图再压缩
