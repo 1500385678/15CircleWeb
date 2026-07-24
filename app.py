@@ -4,16 +4,18 @@
 - 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
 - 启动:python app.py → http://localhost:5000
 """
-__version__ = "1.5.2"
-__updated__ = "2026-07-23"
+__version__ = "1.5.3"
+__updated__ = "2026-07-24"
 
 import sqlite3
 from pathlib import Path
 from flask import Flask, jsonify, request, render_template, abort
 
 BASE = Path(__file__).parent
-# 库在上级目录
-DB = BASE.parent / "15circledb.db"
+# 库在上级目录的上一级(适应 webapp/ 在 _scratch/ 或仓库根目录下的两种部署)
+# 优先尝试 BASE.parent/15circledb.db,失败则 BASE.parent.parent/15circledb.db
+_candidates = [BASE.parent / "15circledb.db", BASE.parent.parent / "15circledb.db"]
+DB = next((p for p in _candidates if p.exists()), _candidates[0])
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
