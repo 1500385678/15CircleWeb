@@ -274,6 +274,10 @@
         <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
         业态体块
       </a>
+      <a class="nav-item" data-view="radial">
+        <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 4a6 6 0 110 12 6 6 0 010-12zm0 3a3 3 0 100 6 3 3 0 000-6z"/></svg>
+        环状圈层
+      </a>
       <a class="nav-item" data-view="standards">
         <svg class="nav-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         规范来源
@@ -576,6 +580,89 @@
       </div>
     </section>
 
+    <!-- 视图 8: 环状 15 分钟生活圈 -->
+    <section id="view-radial" class="view">
+      <div class="mb-4 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h2 class="h-display">环状 15 分钟生活圈</h2>
+          <p class="text-sub mt-2">从邻里中心向外辐射 5/10/15/30 分钟步行圈层,展示每层必配+宜配的设施,点圈层查看详情</p>
+        </div>
+      </div>
+
+      <!-- 控件条 -->
+      <div class="card p-3 mb-3 flex items-center gap-4 flex-wrap text-[12px]">
+        <div class="flex items-center gap-2">
+          <span class="text-[color:var(--text-2)]">项目名称</span>
+          <input id="radial-project" type="text" value="邻里中心项目" class="input-plain w-40" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[color:var(--text-2)]">服务人口</span>
+          <input id="radial-pop" type="number" value="50000" min="1000" max="200000" step="1000" class="input-plain w-24" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[color:var(--text-2)]">步行速度</span>
+          <select id="radial-speed" class="input-plain w-auto">
+            <option value="4.5">4.5 km/h (快走)</option>
+            <option value="4.0" selected>4.0 km/h (常速)</option>
+            <option value="3.5">3.5 km/h (慢走)</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[color:var(--text-2)]">显示</span>
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" id="radial-show-must" checked /> 必配
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" id="radial-show-opt" checked /> 宜配
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" id="radial-show-ref" /> 参考
+          </label>
+        </div>
+        <div class="ml-auto text-[11px] text-[color:var(--text-3)]" id="radial-meta">加载中…</div>
+      </div>
+
+      <!-- 主体: SVG 同心圆 + 设施列表 -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- 同心圆 -->
+        <div class="col-span-12 lg:col-span-7 card p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-[14px] font-semibold">步行可达圈层(俯视)</h3>
+            <div class="text-[11px] text-[color:var(--text-3)]">半径 ∝ 步行距离</div>
+          </div>
+          <div id="radial-svg-container" class="overflow-hidden flex items-center justify-center" style="min-height: 560px;">
+            <svg id="radial-svg" width="100%" height="560" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
+              <text x="300" y="300" text-anchor="middle" fill="#86868b" font-size="14">加载中…</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 圈层设施列表 -->
+        <div class="col-span-12 lg:col-span-5 flex flex-col gap-3">
+          <!-- 当前选中圈层标题 -->
+          <div class="card p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-[12px] text-[color:var(--text-2)]" id="radial-selected-label">点击圈层查看设施</div>
+                <div class="text-[20px] font-semibold mt-1" id="radial-selected-name">—</div>
+                <div class="text-[12px] text-[color:var(--text-3)] mt-1" id="radial-selected-meta">—</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[28px] font-semibold tabular-nums" id="radial-selected-count">—</div>
+                <div class="text-[11px] text-[color:var(--text-3)]">项</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 设施列表 -->
+          <div class="card p-3 flex-1 overflow-hidden flex flex-col" style="max-height: 380px;">
+            <h3 class="text-[13px] font-semibold mb-2">该圈层配建设施</h3>
+            <div id="radial-facility-list" class="overflow-y-auto flex-1 -mx-1 px-1 text-[12px]"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -631,6 +718,7 @@ function switchView(view) {
   if (view === 'facilities') loadFacilities();
   if (view === 'standards') loadStandards();
   if (view === 'massing') loadMassing();
+  if (view === 'radial') loadRadial();
 }
 
 // ============== 仪表盘 ==============
@@ -1413,6 +1501,279 @@ document.getElementById('massing-sort-count').addEventListener('click', () => {
   document.getElementById('massing-sort-count').className = 'px-2 py-1 rounded bg-black/5 text-[color:var(--text-1)]';
   document.getElementById('massing-sort-area').className = 'px-2 py-1 rounded text-[color:var(--text-2)]';
   fetchMassing();
+});
+
+// ============== 环状 15min 圈层图 ==============
+const Radial = {
+  circles: [],   // 5 个圈层
+  data: {},      // code -> { must:[], opt:[], ref:[] }
+  selectedCode: '15min',
+  speed: 4.0,    // km/h
+  showMust: true,
+  showOpt: true,
+  showRef: false,
+};
+
+async function loadRadial() {
+  const svg = document.getElementById('radial-svg');
+  svg.innerHTML = '<text x="300" y="300" text-anchor="middle" fill="#86868b" font-size="14">加载中…</text>';
+
+  // 1. 拿 5 个圈层
+  const circles = await API.get('/api/circles');
+  // 按半径排序(从大到小,绘制时反向)
+  Radial.circles = circles
+    .filter(c => c.walk_radius_m)
+    .sort((a, b) => b.walk_radius_m - a.walk_radius_m);
+
+  // 2. 拿每层必配/宜配/参考
+  for (const c of Radial.circles) {
+    const must = await API.get(`/api/circles/${c.code}/facilities?priority=必配`);
+    const opt  = await API.get(`/api/circles/${c.code}/facilities?priority=宜配`);
+    const ref  = await API.get(`/api/circles/${c.code}/facilities?priority=参考`);
+    Radial.data[c.code] = { must, opt, ref };
+  }
+
+  drawRadial();
+  selectCircle(Radial.selectedCode);
+}
+
+function drawRadial() {
+  const svg = document.getElementById('radial-svg');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const NS = 'http://www.w3.org/2000/svg';
+  const CX = 300, CY = 300;
+  const speed = Radial.speed;
+  // 半径: 30min 圈 = 270px
+  const R_MAX = 270;
+  const R_30  = Radial.circles.find(c => c.code === '30min')?.walk_radius_m || 1500;
+  const pxPerM = R_MAX / R_30;
+
+  // 配色
+  const palette = {
+    'BLOCK': { stroke: '#34c759', fill: 'rgba(52,199,89,0.07)' },   // 街坊
+    '5min':  { stroke: '#5ac8fa', fill: 'rgba(90,200,250,0.10)' },  // 5 分钟
+    '10min': { stroke: '#007aff', fill: 'rgba(0,122,255,0.10)' },   // 10 分钟
+    '15min': { stroke: '#ff9500', fill: 'rgba(255,149,0,0.12)' },   // 15 分钟
+    '30min': { stroke: '#ff3b30', fill: 'rgba(255,59,48,0.10)' },   // 30 分钟
+  };
+
+  // 由外向内绘制填充圆
+  for (const c of Radial.circles) {
+    const r = c.walk_radius_m * pxPerM;
+    const p = palette[c.code] || palette['15min'];
+    const circle = document.createElementNS(NS, 'circle');
+    circle.setAttribute('cx', CX);
+    circle.setAttribute('cy', CY);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', p.fill);
+    circle.setAttribute('stroke', p.stroke);
+    circle.setAttribute('stroke-width', c.code === Radial.selectedCode ? 2.4 : 1.2);
+    circle.setAttribute('stroke-dasharray', c.code === '30min' ? '0' : '0');
+    circle.setAttribute('opacity', c.code === Radial.selectedCode ? 1 : 0.85);
+    circle.style.cursor = 'pointer';
+    circle.dataset.code = c.code;
+    circle.addEventListener('click', () => selectCircle(c.code));
+    svg.appendChild(circle);
+  }
+
+  // 步行方向指示(4 个方向,只画到 30min 圈外一点)
+  const dirs = [
+    { x: CX + R_MAX + 30, y: CY, label: 'E' },
+    { x: CX, y: CY - R_MAX - 30, label: 'N' },
+    { x: CX - R_MAX - 30, y: CY, label: 'W' },
+    { x: CX, y: CY + R_MAX + 30, label: 'S' },
+  ];
+  dirs.forEach(d => {
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', d.x);
+    t.setAttribute('y', d.y + 4);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('fill', '#86868b');
+    t.setAttribute('font-size', '10');
+    t.textContent = d.label;
+    svg.appendChild(t);
+  });
+
+  // 比例尺(右下角 500m 标尺)
+  const scaleLen = 500 * pxPerM;
+  const scaleX = CX + R_MAX - scaleLen;
+  const scaleY = CY + R_MAX + 12;
+  const line = document.createElementNS(NS, 'line');
+  line.setAttribute('x1', scaleX);
+  line.setAttribute('x1', scaleX);
+  line.setAttribute('y1', scaleY);
+  line.setAttribute('x2', scaleX + scaleLen);
+  line.setAttribute('y2', scaleY);
+  line.setAttribute('stroke', '#1d1d1f');
+  line.setAttribute('stroke-width', '1.2');
+  svg.appendChild(line);
+  for (let i = 0; i <= 2; i++) {
+    const tx = scaleX + (scaleLen / 2) * i;
+    const tick = document.createElementNS(NS, 'line');
+    tick.setAttribute('x1', tx);
+    tick.setAttribute('y1', scaleY - 3);
+    tick.setAttribute('x2', tx);
+    tick.setAttribute('y2', scaleY + 3);
+    tick.setAttribute('stroke', '#1d1d1f');
+    tick.setAttribute('stroke-width', '1');
+    svg.appendChild(tick);
+  }
+  const scaleLabel = document.createElementNS(NS, 'text');
+  scaleLabel.setAttribute('x', scaleX + scaleLen / 2);
+  scaleLabel.setAttribute('y', scaleY + 16);
+  scaleLabel.setAttribute('text-anchor', 'middle');
+  scaleLabel.setAttribute('fill', '#86868b');
+  scaleLabel.setAttribute('font-size', '9');
+  scaleLabel.textContent = '500m';
+  svg.appendChild(scaleLabel);
+
+  // 圈层标签(右上 45° 方向,标在每个圈的外缘)
+  for (const c of Radial.circles) {
+    const r = c.walk_radius_m * pxPerM;
+    const angle = -Math.PI / 4;  // 45° 右上
+    const tx = CX + r * Math.cos(angle);
+    const ty = CY + r * Math.sin(angle);
+
+    // 标签底色矩形
+    const lbl = document.createElementNS(NS, 'g');
+    lbl.style.cursor = 'pointer';
+    lbl.addEventListener('click', () => selectCircle(c.code));
+
+    const p = palette[c.code] || palette['15min'];
+    const bg = document.createElementNS(NS, 'rect');
+    const minutes = c.walk_time_min || Math.round(c.walk_radius_m / 1000 / speed * 60);
+    const labelText = `${minutes || c.code.toUpperCase()}′`;
+    const w = 46, h = 22;
+    bg.setAttribute('x', tx - w / 2);
+    bg.setAttribute('y', ty - h / 2);
+    bg.setAttribute('width', w);
+    bg.setAttribute('height', h);
+    bg.setAttribute('rx', 11);
+    bg.setAttribute('fill', c.code === Radial.selectedCode ? p.stroke : '#fff');
+    bg.setAttribute('stroke', p.stroke);
+    bg.setAttribute('stroke-width', '1.2');
+    lbl.appendChild(bg);
+
+    const txt = document.createElementNS(NS, 'text');
+    txt.setAttribute('x', tx);
+    txt.setAttribute('y', ty + 4);
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('fill', c.code === Radial.selectedCode ? '#fff' : p.stroke);
+    txt.setAttribute('font-size', '11');
+    txt.setAttribute('font-weight', '600');
+    txt.textContent = labelText;
+    lbl.appendChild(txt);
+
+    svg.appendChild(lbl);
+  }
+
+  // 中心点 — 项目名 + 人口
+  const pop = parseInt(document.getElementById('radial-pop').value) || 50000;
+  const project = document.getElementById('radial-project').value || '邻里中心项目';
+
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('cx', CX);
+  dot.setAttribute('cy', CY);
+  dot.setAttribute('r', 6);
+  dot.setAttribute('fill', '#1d1d1f');
+  svg.appendChild(dot);
+
+  const projText = document.createElementNS(NS, 'text');
+  projText.setAttribute('x', CX);
+  projText.setAttribute('y', CY - 30);
+  projText.setAttribute('text-anchor', 'middle');
+  projText.setAttribute('fill', '#1d1d1f');
+  projText.setAttribute('font-size', '13');
+  projText.setAttribute('font-weight', '600');
+  projText.textContent = project;
+  svg.appendChild(projText);
+
+  const popText = document.createElementNS(NS, 'text');
+  popText.setAttribute('x', CX);
+  popText.setAttribute('y', CY - 14);
+  popText.setAttribute('text-anchor', 'middle');
+  popText.setAttribute('fill', '#86868b');
+  popText.setAttribute('font-size', '10');
+  popText.textContent = `服务 ${(pop / 10000).toFixed(1)} 万人`;
+  svg.appendChild(popText);
+
+  // meta 信息
+  const meta = `30min 圈半径 ${R_30}m · 比例 ${(pxPerM * 100).toFixed(1)} px/100m · 步行 ${speed}km/h`;
+  document.getElementById('radial-meta').textContent = meta;
+}
+
+function selectCircle(code) {
+  Radial.selectedCode = code;
+  const c = Radial.circles.find(x => x.code === code);
+  if (!c) return;
+  const d = Radial.data[code] || { must: [], opt: [], ref: [] };
+
+  // 标题
+  const minutes = c.walk_time_min || '';
+  document.getElementById('radial-selected-label').textContent =
+    `${minutes ? minutes + ' 分钟' : ''}步行圈层 · 半径 ${c.walk_radius_m}m`;
+  document.getElementById('radial-selected-name').textContent = c.name_zh;
+  const popMin = c.population_min ? c.population_min.toLocaleString() : '—';
+  const popMax = c.population_max ? c.population_max.toLocaleString() : '—';
+  document.getElementById('radial-selected-meta').textContent =
+    `服务人口 ${popMin} ~ ${popMax} · 服务户数 ${(c.household_min || 0).toLocaleString()} ~ ${(c.household_max || 0).toLocaleString()}`;
+
+  // 设施列表
+  const items = [];
+  if (Radial.showMust) items.push({ priority: '必配', list: d.must });
+  if (Radial.showOpt)  items.push({ priority: '宜配', list: d.opt  });
+  if (Radial.showRef)  items.push({ priority: '参考', list: d.ref  });
+
+  const total = items.reduce((s, g) => s + g.list.length, 0);
+  document.getElementById('radial-selected-count').textContent = total;
+
+  const list = document.getElementById('radial-facility-list');
+  if (total === 0) {
+    list.innerHTML = '<div class="text-[color:var(--text-3)] py-4 text-center">未启用任何显示类别,或该圈层无数据</div>';
+  } else {
+    list.innerHTML = items.map(g => {
+      if (g.list.length === 0) return '';
+      const colorMap = { '必配': '#d70015', '宜配': '#ff9500', '参考': '#007aff' };
+      return `
+        <div class="mb-3">
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="w-1.5 h-1.5 rounded-full" style="background:${colorMap[g.priority]}"></span>
+            <span class="text-[11px] font-semibold" style="color:${colorMap[g.priority]}">${g.priority}</span>
+            <span class="text-[10px] text-[color:var(--text-3)]">${g.list.length} 项</span>
+          </div>
+          ${g.list.map(f => `
+            <div class="flex items-baseline gap-1.5 py-0.5 px-1.5 hover:bg-black/5 rounded">
+              <span class="text-[12px] text-[color:var(--text-1)] flex-1">${f.name_zh}</span>
+              ${f.recommended_area_sqm ? `<span class="text-[10px] text-[color:var(--text-3)] tabular-nums">${f.recommended_area_sqm}㎡</span>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 重画圈(高亮当前)
+  drawRadial();
+}
+
+// 控件事件
+document.getElementById('radial-project').addEventListener('input', () => drawRadial());
+document.getElementById('radial-pop').addEventListener('input', () => drawRadial());
+document.getElementById('radial-speed').addEventListener('change', (e) => {
+  Radial.speed = parseFloat(e.target.value);
+  drawRadial();
+});
+document.getElementById('radial-show-must').addEventListener('change', (e) => {
+  Radial.showMust = e.target.checked;
+  selectCircle(Radial.selectedCode);
+});
+document.getElementById('radial-show-opt').addEventListener('change', (e) => {
+  Radial.showOpt = e.target.checked;
+  selectCircle(Radial.selectedCode);
+});
+document.getElementById('radial-show-ref').addEventListener('change', (e) => {
+  Radial.showRef = e.target.checked;
+  selectCircle(Radial.selectedCode);
 });
 
 // ============== 启动 ==============
