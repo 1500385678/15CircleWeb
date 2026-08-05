@@ -1525,13 +1525,12 @@ async function loadRadial() {
     .filter(c => c.walk_radius_m)
     .sort((a, b) => b.walk_radius_m - a.walk_radius_m);
 
-  // 2. 拿每层必配/宜配/参考
-  for (const c of Radial.circles) {
-    const must = await API.get(`/api/circles/${c.code}/facilities?priority=必配`);
-    const opt  = await API.get(`/api/circles/${c.code}/facilities?priority=宜配`);
-    const ref  = await API.get(`/api/circles/${c.code}/facilities?priority=参考`);
-    Radial.data[c.code] = { must, opt, ref };
-  }
+  // 2. 拿每层必配/宜配/参考 (并行,避免 5 层 × 3 优先级串行瀑布)
+  const priorityKeys = ['必配', '宜配', '参考'];
+  const fetchOne = (c) => Promise.all(
+    priorityKeys.map(p => API.get(`/api/circles/${c.code}/facilities?priority=${p}`))
+  ).then(([must, opt, ref]) => { Radial.data[c.code] = { must, opt, ref }; });
+  await Promise.all(Radial.circles.map(fetchOne));
 
   drawRadial();
   selectCircle(Radial.selectedCode);
