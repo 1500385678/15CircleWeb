@@ -34,6 +34,11 @@ def query(sql, args=(), one=False):
         return dict(rows[0]) if rows else None
     return [dict(r) for r in rows]
 
+def query_meta(key, default=None):
+    """读取 db_meta 单条 key,缺键返 default,绝不抛 IndexError。"""
+    row = query("SELECT value FROM db_meta WHERE key=?", (key,), one=True)
+    return (row or {}).get("value", default)
+
 # ---------- 页面 ----------
 @app.route("/")
 def index():
@@ -55,8 +60,8 @@ def api_stats():
         "case_projects":   query("SELECT COUNT(*) c FROM case_projects")[0]["c"],
         "app_version":     __version__,
         "app_updated":      __updated__,
-        "db_version":      query("SELECT value FROM db_meta WHERE key='schema_version'")[0]["value"],
-        "db_updated":      query("SELECT value FROM db_meta WHERE key='last_seed_date'")[0]["value"],
+        "db_version":      query_meta("schema_version", default="unknown"),
+        "db_updated":      query_meta("last_seed_date", default="unknown"),
     })
 
 @app.route("/api/circles")
