@@ -9,7 +9,7 @@ __updated__ = "2026-07-24"
 
 import sqlite3
 from pathlib import Path
-from flask import Flask, jsonify, request, render_template, abort
+from flask import Flask, jsonify, request, render_template, abort, g
 
 BASE = Path(__file__).parent
 # 库在上级目录的上一级(适应 webapp/ 在 _scratch/ 或仓库根目录下的两种部署)
@@ -19,17 +19,26 @@ DB = next((p for p in _candidates if p.exists()), _candidates[0])
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# ---------- 数据库连接 ----------
+# ---------- 数据库连接(请求内复用) ----------
 def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """每个请求一份连接,放在 flask.g,请求结束自动 close。"""
+    if "db" not in g:
+        conn = sqlite3.connect(DB)
+        conn.row_factory = sqlite3.Row
+        g.db = conn
+    return g.db
+
+@app.teardown_appcontext
+def close_db(_exc=None):
+    """请求结束关闭连接(若存在)。"""
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
 
 def query(sql, args=(), one=False):
     conn = get_db()
     cur = conn.execute(sql, args)
     rows = cur.fetchall()
-    conn.close()
     if one:
         return dict(rows[0]) if rows else None
     return [dict(r) for r in rows]
