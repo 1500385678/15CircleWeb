@@ -7,6 +7,7 @@ auto_push.py
 import sys
 import io
 import subprocess
+import threading
 import time
 from pathlib import Path
 from datetime import datetime
@@ -44,7 +45,8 @@ class GitPusher(FileSystemEventHandler):
             return
         self.last_trigger = ts
         print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 检测到变化: {event.event_type} {rel}")
-        self.do_push()
+        # 异步执行 do_push,避免阻塞 watchdog 事件循环,新文件改动不被静默丢弃
+        threading.Thread(target=self.do_push, daemon=True).start()
 
     def do_push(self):
         try:
