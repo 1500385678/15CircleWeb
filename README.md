@@ -9,8 +9,11 @@
 # 1. 安装依赖
 pip install -r requirements.txt
 
-# 2. 准备数据库(从 15CircleDb 仓库获取,放在上级目录)
-#    路径要求:D:\Database\Database\Attack\15CircleDb\15circledb.db
+# 2. 准备数据库(从 15CircleDb 仓库获取)
+#    将 15circledb.db 放在 webapp/ 同级或上级目录,app.py 自动探测:
+#      - 优先尝试 webapp/../15circledb.db
+#      - 其次尝试 webapp/../../15circledb.db
+#    无需硬编码绝对路径,跨平台通用(Windows / macOS / Linux 都可)
 
 # 3. 启动
 python app.py
@@ -70,7 +73,9 @@ _commit_push.bat "修复仪表盘布局"
 Web 应用的 `app.py` 默认从以下路径读取 SQLite:
 
 ```python
-DB = BASE.parent / "15circledb.db"   # 上级目录
+# app.py 自动探测(webapp/ 同级或上级目录任一)
+_candidates = [BASE.parent / "15circledb.db", BASE.parent.parent / "15circledb.db"]
+DB = next((p for p in _candidates if p.exists()), _candidates[0])
 ```
 
 完整数据库建库流程见 [15CircleDb 仓库](https://github.com/1500385678/15CircleDb) 的 README。
