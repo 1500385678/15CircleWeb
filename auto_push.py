@@ -27,8 +27,12 @@ DEBOUNCE_SEC = 2.0  # 改动后 2 秒再触发,合并多次连续改动
 
 class GitPusher(FileSystemEventHandler):
     def __init__(self):
-        self.last_trigger = 0
-        self.pending = False
+        # timer-based debounce: 每次事件取消旧 timer,启动新 timer
+        # 保证最后一次静默后 DEBOUNCE_SEC 必触发,不再丢失中间事件
+        self._timer = None
+        self._lock = threading.Lock()
+        self._pushing = False
+        self._pending_again = False
 
     def on_any_event(self, event):
         if event.is_directory:
@@ -40,13 +44,38 @@ class GitPusher(FileSystemEventHandler):
         if any(event.src_path.endswith(s) for s in ['.pyc', '.log', '.tmp', '~']):
             return
         rel = Path(event.src_path).relative_to(REPO)
-        ts = time.time()
-        if ts - self.last_trigger < DEBOUNCE_SEC:
-            return
-        self.last_trigger = ts
-        print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 检测到变化: {event.event_type} {rel}")
-        # 异步执行 do_push,避免阻塞 watchdog 事件循环,新文件改动不被静默丢弃
-        threading.Thread(target=self.do_push, daemon=True).start()
+        # timer-based debounce: 取消旧 timer,启动新 timer
+        # 解决"2s 窗口内新事件直接 return 不排队"的丢事件 bug
+        with self._lock:
+            if self._timer is not None:
+                self._timer.cancel()
+            self._timer = threading.Timer(DEBOUNCE_SEC, self._fire, args=(rel, event.event_type))
+            self._timer.daemon = True
+            self._timer.start()
+        print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 检测到变化: {event.event_type} {rel} (防抖 {DEBOUNCE_SEC}s)")
+
+    def _fire(self, rel, event_type):
+        """定时器到期后触发;若正在推,标记完成后需要再推一次"""
+        with self._lock:
+            self._timer = None
+            if self._pushing:
+                self._pending_again = True
+                return
+            self._pushing = True
+        try:
+            self.do_push()
+            # 推完后检查期间是否有累积事件(防抖期间又被新事件触发过 timer)
+            while True:
+                with self._lock:
+                    if not self._pending_again:
+                        self._pushing = False
+                        return
+                    self._pending_again = False
+                self.do_push()
+        except Exception as e:
+            with self._lock:
+                self._pushing = False
+            print(f"[ERR] _fire: {e}")
 
     def do_push(self):
         try:
