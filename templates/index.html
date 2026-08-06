@@ -697,6 +697,14 @@ const API = {
   }
 };
 
+// ============== XSS 防护 ==============
+// 所有 innerHTML 模板插值 DB 字段前必须走 escapeHtml,防止恶意数据注入脚本
+const _ESC_MAP = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;'};
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"'/]/g, c => _ESC_MAP[c]);
+}
+
 // ============== 导航 ==============
 document.querySelectorAll('[data-view]').forEach(el => {
   el.addEventListener('click', (e) => {
@@ -756,11 +764,11 @@ async function loadDashboard() {
 
   // 案例速览
   document.getElementById('cases-mini').innerHTML = cases.map(c => `
-    <div class="min-row flex items-center gap-2 hover:bg-black/5 rounded-md cursor-pointer transition" data-case="${c.code}">
+    <div class="min-row flex items-center gap-2 hover:bg-black/5 rounded-md cursor-pointer transition" data-case="${escapeHtml(c.code)}">
       <span class="dot ${c.country === '中国' ? 'dot-cn' : 'dot-sg'}"></span>
       <div class="flex-1 min-w-0">
-        <div class="text-[14px] font-medium text-[color:var(--text-1)] truncate">${c.name_zh}</div>
-        <div class="text-[12px] text-[color:var(--text-3)] truncate">${c.city || ''} ${c.district ? '· ' + c.district : ''}</div>
+        <div class="text-[14px] font-medium text-[color:var(--text-1)] truncate">${escapeHtml(c.name_zh)}</div>
+        <div class="text-[12px] text-[color:var(--text-3)] truncate">${escapeHtml(c.city || '')} ${c.district ? '· ' + escapeHtml(c.district) : ''}</div>
       </div>
       <span class="text-[12px] text-[color:var(--text-2)] tabular-nums flex-shrink-0">${c.population ? (c.population/1000).toFixed(0)+'k 人' : '—'}</span>
       ${c.projects_count > 0 ? `<span class="text-[10px] text-[color:var(--text-3)] flex-shrink-0 tabular-nums">· ${c.projects_count}项目</span>` : ''}
@@ -781,7 +789,7 @@ async function loadDashboard() {
       <tbody>
         ${circles.map(c => `
           <tr class="border-b border-[color:var(--separator)] last:border-0">
-            <td class="py-1.5 font-medium">${c.name_zh}</td>
+            <td class="py-1.5 font-medium">${escapeHtml(c.name_zh)}</td>
             <td class="py-1.5 text-[color:var(--text-2)]">${c.walk_radius_m ? c.walk_radius_m + 'm' : '—'}</td>
             <td class="py-1.5 text-[color:var(--text-2)]">${c.population_min ? `${(c.population_min/1000).toFixed(0)}-${(c.population_max/1000).toFixed(0)}k` : '—'}</td>
             <td class="py-1.5 text-right tabular-nums"><span class="text-[15px] font-semibold text-[color:var(--accent)]">${circle_counts[c.code] || 0}</span> <span class="text-[12px] text-[color:var(--text-3)]">项</span></td>
@@ -899,15 +907,15 @@ async function loadCircleFacilities() {
     if (f.can_be_combined) land.push('可合设');
     return `
       <tr>
-        <td><span class="pill pill-${f.priority}">${f.priority}</span></td>
-        <td class="text-[color:var(--text-2)]">${f.category}</td>
-        <td class="font-medium">${f.name_zh}</td>
-        <td class="text-[color:var(--text-3)] text-[12px]">${f.name_en || ''}</td>
+        <td><span class="pill pill-${escapeHtml(f.priority)}">${escapeHtml(f.priority)}</span></td>
+        <td class="text-[color:var(--text-2)]">${escapeHtml(f.category)}</td>
+        <td class="font-medium">${escapeHtml(f.name_zh)}</td>
+        <td class="text-[color:var(--text-3)] text-[12px]">${escapeHtml(f.name_en || '')}</td>
         <td class="tabular-nums">${f.service_radius_min || ''}–${f.service_radius_max || ''}</td>
         <td class="tabular-nums text-[color:var(--text-2)]">${f.min_area_sqm ? f.min_area_sqm.toLocaleString() : '—'}</td>
         <td class="tabular-nums font-medium">${f.recommended_area_sqm ? f.recommended_area_sqm.toLocaleString() : '—'}</td>
-        <td class="text-[12px] text-[color:var(--text-2)]">${land.join(' / ') || '—'}</td>
-        <td class="text-[12px] text-[color:var(--text-3)]">${f.standard_source || ''}</td>
+        <td class="text-[12px] text-[color:var(--text-2)]">${escapeHtml(land.join(' / ') || '—')}</td>
+        <td class="text-[12px] text-[color:var(--text-3)]">${escapeHtml(f.standard_source || '')}</td>
       </tr>
     `;
   }).join('');
@@ -951,10 +959,10 @@ async function runCalculator() {
   }
   tbody.innerHTML = data.items.map(r => `
     <tr>
-      <td class="text-[12px] text-[color:var(--text-2)]">${r.circle}</td>
-      <td class="text-[color:var(--text-2)]">${r.category}</td>
-      <td class="font-medium">${r.name_zh}</td>
-      <td><span class="pill pill-${r.priority}">${r.priority}</span></td>
+      <td class="text-[12px] text-[color:var(--text-2)]">${escapeHtml(r.circle)}</td>
+      <td class="text-[color:var(--text-2)]">${escapeHtml(r.category)}</td>
+      <td class="font-medium">${escapeHtml(r.name_zh)}</td>
+      <td><span class="pill pill-${escapeHtml(r.priority)}">${escapeHtml(r.priority)}</span></td>
       <td class="tabular-nums font-semibold text-[color:var(--accent)]">${r.required_count}</td>
       <td class="tabular-nums text-[color:var(--text-2)]">${r.per_unit_area.toLocaleString()}</td>
       <td class="tabular-nums font-medium">${r.total_area.toLocaleString()}</td>
@@ -968,17 +976,17 @@ async function loadCases(country = '') {
   const url = country ? `/api/cases?country=${encodeURIComponent(country)}` : '/api/cases';
   const cases = await API.get(url);
   document.getElementById('cases-grid').innerHTML = cases.map(c => `
-    <div class="card case-card p-5 cursor-pointer" data-case="${c.code}">
+    <div class="card case-card p-5 cursor-pointer" data-case="${escapeHtml(c.code)}">
       <div class="flex items-start justify-between mb-3">
         <div>
-          <div class="text-[16px] font-semibold">${c.name_zh}</div>
-          <div class="text-[12px] text-[color:var(--text-3)] mt-1">${c.country} · ${c.city || ''} ${c.district ? '· ' + c.district : ''}</div>
+          <div class="text-[16px] font-semibold">${escapeHtml(c.name_zh)}</div>
+          <div class="text-[12px] text-[color:var(--text-3)] mt-1">${escapeHtml(c.country)} · ${escapeHtml(c.city || '')} ${c.district ? '· ' + escapeHtml(c.district) : ''}</div>
         </div>
-        <span class="text-[12px] text-[color:var(--text-3)] tabular-nums">${c.year || ''}</span>
+        <span class="text-[12px] text-[color:var(--text-3)] tabular-nums">${escapeHtml(c.year || '')}</span>
       </div>
-      <p class="text-[14px] text-[color:var(--text-2)] leading-relaxed line-clamp-3">${c.description || ''}</p>
+      <p class="text-[14px] text-[color:var(--text-2)] leading-relaxed line-clamp-3">${escapeHtml(c.description || '')}</p>
       <div class="mt-4 flex items-center gap-2 flex-wrap">
-        ${c.pilot_status ? `<span class="pill pill-参考">${c.pilot_status}</span>` : ''}
+        ${c.pilot_status ? `<span class="pill pill-参考">${escapeHtml(c.pilot_status)}</span>` : ''}
         ${c.population ? `<span class="pill pill-参考">${c.population.toLocaleString()} 人</span>` : ''}
         ${c.radius_m ? `<span class="pill pill-参考">${c.radius_m}m</span>` : ''}
         ${c.projects_count > 0 ? `<span class="pill pill-宜配" title="运营生态具体项目">🌿 ${c.projects_count} 项目</span>` : ''}
@@ -1013,8 +1021,8 @@ function showCaseDetail(c) {
         ${c.facilities.slice(0, 12).map(f => `
           <li class="flex items-center gap-2">
             <span class="w-1 h-1 bg-[color:var(--text-3)] rounded-full"></span>
-            <span>${f.facility_name}</span>
-            ${f.name_specific ? `<span class="text-[color:var(--text-3)]">- ${f.name_specific}</span>` : ''}
+            <span>${escapeHtml(f.facility_name)}</span>
+            ${f.name_specific ? `<span class="text-[color:var(--text-3)]">- ${escapeHtml(f.name_specific)}</span>` : ''}
             ${f.total_area_sqm ? `<span class="text-[color:var(--text-3)] tabular-nums">(${f.total_area_sqm.toLocaleString()}㎡)</span>` : ''}
           </li>
         `).join('')}
@@ -1039,12 +1047,12 @@ function showCaseDetail(c) {
           ${cats.map(([cat, items]) => `
             <div>
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="text-[13px] font-semibold text-[color:var(--text-1)]">${cat}</span>
+                <span class="text-[13px] font-semibold text-[color:var(--text-1)]">${escapeHtml(cat)}</span>
                 <span class="text-[11px] text-[color:var(--text-3)] tabular-nums">${items.length} 项</span>
               </div>
               <div class="flex flex-wrap gap-1.5">
                 ${items.map(it => `
-                  <span class="inline-flex items-center px-2 py-0.5 text-[12px] bg-black/5 text-[color:var(--text-2)] rounded-full">${it.name}</span>
+                  <span class="inline-flex items-center px-2 py-0.5 text-[12px] bg-black/5 text-[color:var(--text-2)] rounded-full">${escapeHtml(it.name)}</span>
                 `).join('')}
               </div>
             </div>
@@ -1056,7 +1064,7 @@ function showCaseDetail(c) {
 
   const html = `
     <div class="space-y-3 text-[14px]">
-      <p class="text-[color:var(--text-1)] leading-relaxed">${c.description || ''}</p>
+      <p class="text-[color:var(--text-1)] leading-relaxed">${escapeHtml(c.description || '')}</p>
       ${facBlock}
       ${projBlock}
     </div>
@@ -1084,11 +1092,11 @@ async function loadFacilities() {
     <li><a href="#" data-cat-id="" class="cat-item block px-2 py-1.5 text-[color:var(--accent)] font-medium rounded-lg hover:bg-black/5">全部</a></li>
     ${State.categories.map(c => `
       <li>
-        <a href="#" data-cat-id="${c.id}" class="cat-item block px-2 py-1.5 text-[color:var(--text-1)] hover:bg-black/5 rounded-lg">${c.name_zh} <span class="text-[11px] text-[color:var(--text-3)]">${(c.children||[]).length}</span></a>
+        <a href="#" data-cat-id="${escapeHtml(c.id)}" class="cat-item block px-2 py-1.5 text-[color:var(--text-1)] hover:bg-black/5 rounded-lg">${escapeHtml(c.name_zh)} <span class="text-[11px] text-[color:var(--text-3)]">${(c.children||[]).length}</span></a>
         ${(c.children || []).length ? `
           <ul class="ml-3 mt-0.5 space-y-0.5 border-l border-[color:var(--separator)] pl-2">
             ${c.children.map(ch => `
-              <li><a href="#" data-cat-id="${ch.id}" class="cat-item block px-2 py-1 text-[12px] text-[color:var(--text-2)] hover:bg-black/5 rounded-lg">${ch.name_zh}</a></li>
+              <li><a href="#" data-cat-id="${escapeHtml(ch.id)}" class="cat-item block px-2 py-1 text-[12px] text-[color:var(--text-2)] hover:bg-black/5 rounded-lg">${escapeHtml(ch.name_zh)}</a></li>
             `).join('')}
           </ul>
         ` : ''}
@@ -1114,14 +1122,14 @@ async function loadFacilityList() {
     State.currentCategory ? `已筛选: ${facs.length} 项` : `全部设施: ${facs.length} 项`;
   document.getElementById('facility-table-body').innerHTML = facs.map(f => `
     <tr>
-      <td class="font-mono text-[12px] text-[color:var(--text-3)]">${f.code}</td>
-      <td class="font-medium">${f.name_zh}</td>
-      <td class="text-[12px] text-[color:var(--text-3)]">${f.name_en || ''}</td>
-      <td class="text-[color:var(--text-2)]">${f.category}</td>
-      <td><span class="pill pill-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${f.level || '—'}</span></td>
+      <td class="font-mono text-[12px] text-[color:var(--text-3)]">${escapeHtml(f.code)}</td>
+      <td class="font-medium">${escapeHtml(f.name_zh)}</td>
+      <td class="text-[12px] text-[color:var(--text-3)]">${escapeHtml(f.name_en || '')}</td>
+      <td class="text-[color:var(--text-2)]">${escapeHtml(f.category)}</td>
+      <td><span class="pill pill-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${escapeHtml(f.level || '—')}</span></td>
       <td class="tabular-nums text-[color:var(--text-2)]">${f.service_radius_max || '—'}</td>
       <td class="tabular-nums">${f.recommended_area_sqm ? f.recommended_area_sqm.toLocaleString() : '—'}</td>
-      <td class="text-[12px] text-[color:var(--text-3)]">${f.standard_source ? f.standard_source.split('+')[0] : ''}</td>
+      <td class="text-[12px] text-[color:var(--text-3)]">${escapeHtml(f.standard_source ? f.standard_source.split('+')[0] : '')}</td>
     </tr>
   `).join('') || '<tr><td colspan="8" class="text-center text-[color:var(--text-3)] py-12">无数据</td></tr>';
 }
@@ -1132,17 +1140,17 @@ async function loadStandards() {
   document.getElementById('standards-grid').innerHTML = stds.map(s => `
     <div class="card p-5">
       <div class="flex items-start justify-between mb-2">
-        <h3 class="text-[16px] font-semibold">${s.short_name}</h3>
+        <h3 class="text-[16px] font-semibold">${escapeHtml(s.short_name)}</h3>
         <span class="pill ${
           s.level === '国家级' ? 'pill-必配' :
           s.level === '行业标准' ? 'pill-宜配' :
           s.level === '地方级' ? 'pill-参考' : 'pill-参考'
-        }">${s.level}</span>
+        }">${escapeHtml(s.level)}</span>
       </div>
-      <div class="text-[12px] text-[color:var(--text-3)] mb-3 tabular-nums">${s.code} · ${s.year} · ${s.issuer || ''}</div>
-      <div class="text-[14px] text-[color:var(--text-2)] leading-relaxed">${s.summary || ''}</div>
-      ${s.region ? `<div class="mt-3 text-[12px] text-[color:var(--text-3)]">适用范围: ${s.region}</div>` : ''}
-      ${s.url ? `<a href="${s.url}" target="_blank" class="mt-3 inline-block text-[13px] text-[color:var(--accent)] hover:underline">查看原文 →</a>` : ''}
+      <div class="text-[12px] text-[color:var(--text-3)] mb-3 tabular-nums">${escapeHtml(s.code)} · ${escapeHtml(s.year)} · ${escapeHtml(s.issuer || '')}</div>
+      <div class="text-[14px] text-[color:var(--text-2)] leading-relaxed">${escapeHtml(s.summary || '')}</div>
+      ${s.region ? `<div class="mt-3 text-[12px] text-[color:var(--text-3)]">适用范围: ${escapeHtml(s.region)}</div>` : ''}
+      ${s.url ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-[13px] text-[color:var(--accent)] hover:underline">查看原文 →</a>` : ''}
     </div>
   `).join('');
 }
@@ -1166,10 +1174,10 @@ searchInput.addEventListener('input', () => {
           <a href="#" class="block px-3 py-2.5 hover:bg-black/5 rounded-lg">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-[14px] font-medium">${f.name_zh}</div>
-                <div class="text-[12px] text-[color:var(--text-3)]">${f.name_en || ''} · ${f.category}</div>
+                <div class="text-[14px] font-medium">${escapeHtml(f.name_zh)}</div>
+                <div class="text-[12px] text-[color:var(--text-3)]">${escapeHtml(f.name_en || '')} · ${escapeHtml(f.category)}</div>
               </div>
-              <span class="pill pill-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${f.level || '—'}</span>
+              <span class="pill pill-${f.level === '必配' ? '必配' : (f.level === '宜配' ? '宜配' : '参考')}">${escapeHtml(f.level || '—')}</span>
             </div>
           </a>
         `).join('')}
@@ -1380,8 +1388,8 @@ function renderMassingList(blocks) {
       <div class="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-black/5">
         <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0" style="background:${b.color}"></span>
         <div class="flex-1 min-w-0">
-          <div class="text-[13px] font-medium truncate">${b.label}</div>
-          <div class="text-[10px] text-[color:var(--text-3)] truncate">${b.source || b.code || ''}</div>
+          <div class="text-[13px] font-medium truncate">${escapeHtml(b.label)}</div>
+          <div class="text-[10px] text-[color:var(--text-3)] truncate">${escapeHtml(b.source || b.code || '')}</div>
         </div>
         <div class="text-right flex-shrink-0">
           <div class="text-[12px] font-semibold tabular-nums">${Math.round(b.area_sqm).toLocaleString()} ㎡</div>
@@ -1412,13 +1420,13 @@ async function loadMassingOptions() {
     if (!State.cases || State.cases.length === 0) {
       State.cases = await API.get('/api/cases');
     }
-    sel.innerHTML = State.cases.map(c => `<option value="${c.code}">${c.country} · ${c.city} · ${c.name_zh}</option>`).join('');
+    sel.innerHTML = State.cases.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.country)} · ${escapeHtml(c.city)} · ${escapeHtml(c.name_zh)}</option>`).join('');
   } else {
     document.getElementById('massing-select-label').textContent = '圈层';
     if (!State.circles || State.circles.length === 0) {
       State.circles = await API.get('/api/circles');
     }
-    sel.innerHTML = State.circles.map(c => `<option value="${c.code}">${c.name_zh} (${c.walk_radius_m}m)</option>`).join('');
+    sel.innerHTML = State.circles.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.name_zh)} (${c.walk_radius_m}m)</option>`).join('');
   }
   if (Massing.target) sel.value = Massing.target;
 }
@@ -1452,7 +1460,7 @@ async function fetchMassing() {
     }
     document.getElementById('massing-svg-title').textContent = Massing.mode === 'case' ? `${data.case_name} · 业态体块` : `${data.circle_name} · 配建体块`;
   } catch (err) {
-    document.getElementById('massing-svg').innerHTML = `<text x="500" y="250" text-anchor="middle" fill="#d70015" font-size="14">加载失败: ${err.message}</text>`;
+    document.getElementById('massing-svg').innerHTML = `<text x="500" y="250" text-anchor="middle" fill="#d70015" font-size="14">加载失败: ${escapeHtml(err.message)}</text>`;
   }
 }
 
@@ -1732,7 +1740,7 @@ function selectCircle(code) {
           </div>
           ${g.list.map(f => `
             <div class="flex items-baseline gap-1.5 py-0.5 px-1.5 hover:bg-black/5 rounded">
-              <span class="text-[12px] text-[color:var(--text-1)] flex-1">${f.name_zh}</span>
+              <span class="text-[12px] text-[color:var(--text-1)] flex-1">${escapeHtml(f.name_zh)}</span>
               ${f.recommended_area_sqm ? `<span class="text-[10px] text-[color:var(--text-3)] tabular-nums">${f.recommended_area_sqm}㎡</span>` : ''}
             </div>
           `).join('')}
