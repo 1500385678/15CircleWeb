@@ -17,14 +17,29 @@ BASE = Path(__file__).parent
 _candidates = [BASE.parent / "15circledb.db", BASE.parent.parent / "15circledb.db"]
 DB = next((p for p in _candidates if p.exists()), _candidates[0])
 
+# 启动时打 WAL(改善并发读 + 避免读锁阻塞写),只在库存在时打
+try:
+    if DB.exists():
+        _wal_conn = sqlite3.connect(DB)
+        _wal_conn.execute("PRAGMA journal_mode=WAL")
+        _wal_conn.execute("PRAGMA synchronous=NORMAL")
+        _wal_conn.close()
+except Exception as _wal_err:
+    print(f"[WARN] WAL pragma 失败(非致命): {_wal_err}")
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# ---------- 数据库连接(请求内复用) ----------
+# ---------- 数据库连接(请求内复用 + WAL) ----------
 def get_db():
     """每个请求一份连接,放在 flask.g,请求结束自动 close。"""
     if "db" not in g:
         conn = sqlite3.connect(DB)
         conn.row_factory = sqlite3.Row
+        # 每次新连接也确保 WAL 模式(对连接池/新线程必要)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+        except Exception:
+            pass
         g.db = conn
     return g.db
 
@@ -36,17 +51,43 @@ def close_db(_exc=None):
         db.close()
 
 def query(sql, args=(), one=False):
+    """执行 SQL。
+    one=True 走 fetchone() 取单行(原 fetchall+rows[0] 多此一举 + rows[0] 越界风险)。
+    出错打日志并抛出,让 Flask errorhandler 统一返 JSON 500,不再裸堆栈。
+    """
     conn = get_db()
     cur = conn.execute(sql, args)
-    rows = cur.fetchall()
     if one:
-        return dict(rows[0]) if rows else None
-    return [dict(r) for r in rows]
+        row = cur.fetchone()
+        return dict(row) if row else None
+    return [dict(r) for r in cur.fetchall()]
 
 def query_meta(key, default=None):
     """读取 db_meta 单条 key,缺键返 default,绝不抛 IndexError。"""
     row = query("SELECT value FROM db_meta WHERE key=?", (key,), one=True)
     return (row or {}).get("value", default)
+
+# ---------- 全局错误处理 ----------
+@app.errorhandler(404)
+def _404(_e):
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "not found", "path": request.path}), 404
+    return _e, 404
+
+@app.errorhandler(sqlite3.Error)
+def _sqlite_err(e):
+    """SQL 错误统一返 JSON 500,不再裸堆栈泄露给前端。"""
+    print(f"[DB ERR] {type(e).__name__}: {e}")
+    return jsonify({"error": "database error", "detail": str(e)}), 500
+
+@app.errorhandler(Exception)
+def _generic_err(e):
+    """其他未捕获异常也走 JSON 500(对 /api/*),不再 HTML 堆栈。"""
+    if request.path.startswith("/api/"):
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "internal server error", "detail": str(e)}), 500
+    raise e
 
 # ---------- 页面 ----------
 @app.route("/")
