@@ -415,6 +415,47 @@ def api_massing_circle(code):
         "blocks":         blocks,
     })
 
+@app.route("/api/dashboard_summary")
+def api_dashboard_summary():
+    """仪表盘单接口聚合:替代 /api/circles + /api/cases + 2N 个 /api/circles/{code}/facilities。
+
+    一次返回 circles / cases / circle_counts,把 2N+3 个串行请求压到 1 个。
+    circle_counts 是单 SQL 聚合(LIFECircles LEFT JOIN facility_circle_map + facilities
+    过滤 is_active),与原 5 圈层 N+1 等价。
+    """
+    # 1) 圈层 + 设施计数(单 SQL 聚合,O(1) 替代 O(N))
+    counts_rows = query("""
+        SELECT lc.code, COUNT(fcm.facility_id) AS cnt
+        FROM life_circles lc
+        LEFT JOIN facility_circle_map fcm ON fcm.circle_id = lc.id
+        LEFT JOIN facilities f ON f.id = fcm.facility_id AND f.is_active = 1
+        WHERE lc.is_active = 1
+        GROUP BY lc.id
+        ORDER BY lc.sort_order
+    """)
+    circle_counts = {r["code"]: r["cnt"] for r in counts_rows}
+    # 2) 圈层(字段集与 /api/circles 一致)
+    circles = query("""
+        SELECT id, code, name_zh, name_en, walk_time_min, walk_radius_m,
+               population_min, population_max, household_min, household_max,
+               area_ha_min, area_ha_max, sort_order, description
+        FROM life_circles
+        WHERE is_active = 1
+        ORDER BY sort_order
+    """)
+    # 3) 案例速览(字段集与 /api/cases 一致,无 country 过滤)
+    cases = query("""SELECT c.*,
+                            (SELECT COUNT(*) FROM case_facilities cf WHERE cf.case_id = c.id) AS facilities_count,
+                            (SELECT COUNT(*) FROM case_projects  cp WHERE cp.case_id = c.id) AS projects_count
+                     FROM cases c
+                     ORDER BY c.country, c.city, c.year""")
+    return jsonify({
+        "circles":       circles,
+        "cases":         cases,
+        "circle_counts": circle_counts,
+    })
+
+
 @app.route("/api/categories")
 def api_categories():
     rows = query("""

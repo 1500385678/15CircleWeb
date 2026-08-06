@@ -743,19 +743,18 @@ async function loadDashboard() {
     </div>
   `).join('');
 
-  // 圈层设施图
-  const circles = await API.get('/api/circles');
+  // 仪表盘聚合:1 次拿 circles + cases + circle_counts,原 2N+3 串行 → 1 个
+  const summary = await API.get('/api/dashboard_summary');
+  const { circles, cases, circle_counts } = summary;
   State.circles = circles;
-  const circleData = await Promise.all(circles.map(async c => {
-    const fac = await API.get(`/api/circles/${c.code}/facilities`);
-    return { code: c.name_zh, count: fac.length };
-  }));
+  State.cases = cases;
+
+  // 圈层设施图(用 circle_counts 替代 N+1 拉取)
+  const circleData = circles.map(c => ({ code: c.name_zh, count: circle_counts[c.code] || 0 }));
   drawCircleChart(circleData);
   drawCategoryChart();
 
   // 案例速览
-  const cases = await API.get('/api/cases');
-  State.cases = cases;
   document.getElementById('cases-mini').innerHTML = cases.map(c => `
     <div class="min-row flex items-center gap-2 hover:bg-black/5 rounded-md cursor-pointer transition" data-case="${c.code}">
       <span class="dot ${c.country === '中国' ? 'dot-cn' : 'dot-sg'}"></span>
@@ -768,7 +767,7 @@ async function loadDashboard() {
     </div>
   `).join('');
 
-  // 圈层对照表
+  // 圈层对照表(计数直接用 circle_counts 同步渲染,不再二次 N+1 拉取)
   document.getElementById('circles-table').innerHTML = `
     <table class="w-full text-[13px]">
       <thead>
@@ -785,20 +784,12 @@ async function loadDashboard() {
             <td class="py-1.5 font-medium">${c.name_zh}</td>
             <td class="py-1.5 text-[color:var(--text-2)]">${c.walk_radius_m ? c.walk_radius_m + 'm' : '—'}</td>
             <td class="py-1.5 text-[color:var(--text-2)]">${c.population_min ? `${(c.population_min/1000).toFixed(0)}-${(c.population_max/1000).toFixed(0)}k` : '—'}</td>
-            <td class="py-1.5 text-right tabular-nums" data-circle-count="${c.code}">—</td>
+            <td class="py-1.5 text-right tabular-nums"><span class="text-[15px] font-semibold text-[color:var(--accent)]">${circle_counts[c.code] || 0}</span> <span class="text-[12px] text-[color:var(--text-3)]">项</span></td>
           </tr>
         `).join('')}
       </tbody>
     </table>
   `;
-
-  circles.forEach(async c => {
-    const fac = await API.get(`/api/circles/${c.code}/facilities`);
-    const cell = document.querySelector(`[data-circle-count="${c.code}"]`);
-    if (cell) {
-      cell.innerHTML = `<span class="text-[15px] font-semibold text-[color:var(--accent)]">${fac.length}</span> <span class="text-[12px] text-[color:var(--text-3)]">项</span>`;
-    }
-  });
 
   document.querySelectorAll('#cases-mini [data-case]').forEach(el => {
     el.addEventListener('click', async () => {
