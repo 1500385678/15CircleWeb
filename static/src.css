@@ -1,0 +1,4 @@
+/* Tailwind v3 入口:扫描 templates/ 下 HTML/JS 后按需注入 utility class */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

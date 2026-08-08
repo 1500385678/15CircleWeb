@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>15CircleDb · 15 分钟生活圈配套数据库</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind v3 本地编译产物(P0-01 修复:移除 cdn.tailwindcss.com,首屏 -340KB,免 CDN 单点故障)
+     编译方式:npx tailwindcss@3.4.13 -c static/tailwind.config.js -i static/src.css -o static/tailwind.css --minify
+     content 配置只扫描 templates/,13.7KB minified,覆盖所有 grid/flex/spacing utility -->
+<link rel="stylesheet" href="/static/tailwind.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {

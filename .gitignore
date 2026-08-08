@@ -28,3 +28,9 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Node(仅编译 Tailwind 时临时使用,npx 不写 package.json,不入库)
+node_modules/
+package.json
+package-lock.json
+npm-debug.log*
