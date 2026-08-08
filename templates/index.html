@@ -1527,12 +1527,17 @@ async function loadRadial() {
     .filter(c => c.walk_radius_m)
     .sort((a, b) => b.walk_radius_m - a.walk_radius_m);
 
-  // 2. 拿每层必配/宜配/参考 (并行,避免 5 层 × 3 优先级串行瀑布)
-  const priorityKeys = ['必配', '宜配', '参考'];
-  const fetchOne = (c) => Promise.all(
-    priorityKeys.map(p => API.get(`/api/circles/${c.code}/facilities?priority=${p}`))
-  ).then(([must, opt, ref]) => { Radial.data[c.code] = { must, opt, ref }; });
-  await Promise.all(Radial.circles.map(fetchOne));
+  // 2. 一次拿全 5 圈层 × 3 优先级的设施,client 端按 circle code + priority 分桶
+  // 替代原来的 15 个并行 /api/circles/<code>/facilities?priority=xxx
+  const allBuckets = await API.get('/api/circles/facilities/all');
+  for (const c of Radial.circles) {
+    const cb = allBuckets[c.code] || {};
+    Radial.data[c.code] = {
+      must: cb['必配'] || [],
+      opt:  cb['宜配'] || [],
+      ref:  cb['参考'] || [],
+    };
+  }
 
   drawRadial();
   selectCircle(Radial.selectedCode);

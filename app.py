@@ -192,6 +192,42 @@ def api_circle_facilities(code):
     """
     return jsonify(query(sql, args))
 
+@app.route("/api/circles/facilities/all")
+def api_circles_facilities_all():
+    """聚合端点:5 圈层 × 3 优先级 = 15 个数据集合并为 1 个 SQL 查询。
+    返回 {circle_code: {priority: [facility, ...]}} 结构,client 端按需分桶。
+    用于 Radial 视图(原来 15 个并行 /api/circles/<code>/facilities?priority=xxx)。"""
+    rows = query("""
+        SELECT
+            lc.code AS circle_code,
+            fcm.priority,
+            f.id, f.code, f.name_zh, f.name_en, f.aliases,
+            c.name_zh AS category, c.code AS category_code, c.id AS category_id,
+            f.service_radius_min, f.service_radius_max,
+            f.min_area_sqm, f.recommended_area_sqm, f.max_area_sqm,
+            f.min_land_sqm, f.recommended_land_sqm, f.max_land_sqm,
+            f.per_population, f.population_per_unit,
+            f.bldg_per_1000_min, f.bldg_per_1000_max,
+            f.should_be_independent, f.recommended_independent, f.can_be_combined,
+            f.standard_source, f.standard_clause, f.tags, f.notes
+        FROM facilities f
+        JOIN facility_circle_map fcm ON fcm.facility_id = f.id
+        JOIN life_circles lc ON lc.id = fcm.circle_id
+        JOIN categories c ON c.id = f.category_id
+        WHERE f.is_active = 1
+        ORDER BY
+            lc.sort_order,
+            CASE fcm.priority WHEN '必配' THEN 1 WHEN '宜配' THEN 2 WHEN '参考' THEN 3 ELSE 4 END,
+            c.sort_order, f.sort_order
+    """)
+    # 按 circle_code → priority 分桶(单一来源,client 不再 15 并发)
+    bucket = {}
+    for r in rows:
+        code = r.pop("circle_code")
+        pri = r.pop("priority")
+        bucket.setdefault(code, {}).setdefault(pri, []).append(r)
+    return jsonify(bucket)
+
 @app.route("/api/calculate")
 def api_calculate():
     """反推配建清单:给定人口和圈层,返回必配数+总面积估算"""
