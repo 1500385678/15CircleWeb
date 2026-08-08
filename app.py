@@ -8,6 +8,7 @@ __version__ = "1.5.3"
 __updated__ = "2026-07-24"
 
 import sqlite3
+import sys
 from pathlib import Path
 from flask import Flask, jsonify, request, render_template, abort, g
 
@@ -78,6 +79,21 @@ def query_meta(key, default=None):
     return (row or {}).get("value", default)
 
 # ---------- 全局错误处理 ----------
+# 敏感信息关键字:str(e) 含这些字眼一律只返 fallback,不暴露表/列/约束/SQL 片段
+# 避免攻击者通过错误信息反推 db schema
+_SENSITIVE_KEYWORDS = ("table", "column", "constraint", "select ", " from ", " where ", " join ", "index ")
+
+def _sanitize_detail(e, fallback):
+    """从异常 e 提取安全 detail,失败返 fallback。
+    命中敏感字眼 / 过长 / 包含堆栈符号 → 返 fallback(原始 str(e) 只进 stderr)。"""
+    s = str(e)
+    s_lower = s.lower()
+    if any(kw in s_lower for kw in _SENSITIVE_KEYWORDS):
+        return fallback
+    if len(s) > 200 or "\n" in s:
+        return fallback
+    return s
+
 @app.errorhandler(404)
 def _404(_e):
     if request.path.startswith("/api/"):
@@ -86,17 +102,25 @@ def _404(_e):
 
 @app.errorhandler(sqlite3.Error)
 def _sqlite_err(e):
-    """SQL 错误统一返 JSON 500,不再裸堆栈泄露给前端。"""
-    print(f"[DB ERR] {type(e).__name__}: {e}")
-    return jsonify({"error": "database error", "detail": str(e)}), 500
+    """SQL 错误统一返 JSON 500,sanitize detail 不泄露表/列结构。"""
+    # 原始 str(e) 只进 stderr(供排错),前端只看到 sanitize 后的类型名
+    print(f"[DB ERR] {type(e).__name__}: {e}", file=sys.stderr)
+    return jsonify({
+        "error": "database error",
+        "detail": _sanitize_detail(e, f"{type(e).__name__}(see server logs)")
+    }), 500
 
 @app.errorhandler(Exception)
 def _generic_err(e):
-    """其他未捕获异常也走 JSON 500(对 /api/*),不再 HTML 堆栈。"""
+    """其他未捕获异常也走 JSON 500(对 /api/*),detail sanitize 不泄露堆栈。"""
     if request.path.startswith("/api/"):
         import traceback
+        # 原始 traceback 只进 stderr,前端只看到 sanitize 后的简短说明
         traceback.print_exc()
-        return jsonify({"error": "internal server error", "detail": str(e)}), 500
+        return jsonify({
+            "error": "internal server error",
+            "detail": _sanitize_detail(e, "see server logs")
+        }), 500
     raise e
 
 # ---------- 页面 ----------
