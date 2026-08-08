@@ -577,4 +577,12 @@ if __name__ == "__main__":
     print(f"  ║  更新于: {__updated__:>30s} ║")
     print(f"  ╚════════════════════════════════════════╝")
     print(f"")
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    # 优先用 waitress(生产推荐:多线程 + 无 Werkzeug 性能/安全坑)
+    # 缺包时降级到 Flask 自带 dev server(开发用)
+    try:
+        from waitress import serve
+        print(f"  [i] 启动方式: waitress (生产) · 4 threads · http://localhost:5000")
+        serve(app, host="0.0.0.0", port=5000, threads=4)
+    except ImportError:
+        print(f"  [i] 启动方式: Flask dev server (开发) · pip install waitress 切生产")
+        app.run(host="0.0.0.0", port=5000, debug=False)

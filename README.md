@@ -20,6 +20,22 @@ python app.py
 # → http://localhost:5000
 ```
 
+### 生产部署
+
+`app.py` 启动段已自动检测 `waitress`,优先用多线程生产服务器;缺包时降级到 Flask dev server。
+
+```bash
+# 推荐:装 waitress 后启动即生产模式
+pip install waitress
+python app.py  # 自动用 waitress · 4 threads
+
+# 显式 waitress(完全控制参数)
+waitress-serve --port=5000 --threads=4 app:app
+
+# 或 gunicorn(需要 Linux,macOS 也可)
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
+
 ## 自动推送到 GitHub
 
 ### 方式 A:文件监听(自动)
