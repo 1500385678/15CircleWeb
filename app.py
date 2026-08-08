@@ -17,6 +17,16 @@ BASE = Path(__file__).parent
 _candidates = [BASE.parent / "15circledb.db", BASE.parent.parent / "15circledb.db"]
 DB = next((p for p in _candidates if p.exists()), _candidates[0])
 
+# 启动期 fail-fast:库不在 → 直接退出,不再让用户看到"假活"页面(API 全 500)
+# 避免"app 200 OK → API 500 → 翻代码 → 才发现库不在"的排错链
+if not DB.exists():
+    import sys
+    print(f"[FATAL] 数据库不存在:{DB}", file=sys.stderr)
+    print(f"[FATAL] 请从 15CircleDb 仓库拷贝 15circledb.db 到以下任一位置:", file=sys.stderr)
+    for _c in _candidates:
+        print(f"  - {_c}", file=sys.stderr)
+    sys.exit(1)
+
 # 启动时打 WAL(改善并发读 + 避免读锁阻塞写),只在库存在时打
 try:
     if DB.exists():
