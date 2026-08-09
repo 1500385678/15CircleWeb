@@ -603,20 +603,26 @@ def api_facilities():
     sql += " ORDER BY c.sort_order, f.sort_order"
     return jsonify(query(sql, args))
 
+def _escape_like(s: str) -> str:
+    """转义 SQL LIKE 通配符 %, _ 和转义符 \\ 本身,避免用户输入 50% / foo_bar
+    等被错误解释为通配符(2026-08-09 P0 修复)"""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 @app.route("/api/search")
 def api_search():
     q = request.args.get("q", "").strip()
     if not q:
         return jsonify([])
-    like = f"%{q}%"
+    like = f"%{_escape_like(q)}%"
     rows = query("""
         SELECT f.id, f.code, f.name_zh, f.name_en, c.name_zh AS category,
                f.level, f.recommended_area_sqm, f.standard_source
         FROM facilities f
         JOIN categories c ON c.id = f.category_id
         WHERE f.is_active = 1 AND (
-            f.name_zh LIKE ? OR f.name_en LIKE ? OR f.aliases LIKE ?
-            OR f.notes LIKE ? OR c.name_zh LIKE ?
+            f.name_zh LIKE ? ESCAPE '\\' OR f.name_en LIKE ? ESCAPE '\\' OR f.aliases LIKE ? ESCAPE '\\'
+            OR f.notes LIKE ? ESCAPE '\\' OR c.name_zh LIKE ? ESCAPE '\\'
         )
         ORDER BY f.sort_order
         LIMIT 50
