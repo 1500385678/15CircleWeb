@@ -131,21 +131,27 @@ def index():
 # ---------- API ----------
 @app.route("/api/stats")
 def api_stats():
+    # 单次 SQL 取 10 张表 COUNT(*),避免 10 次独立 query 开销(原 10 次串行 ≈ 10×单次)
+    # waiter 4 线程 × 高频调用场景下,游标/连接/page cache 重复切换累计延迟显著
+    _counts = query("""
+        SELECT
+            (SELECT COUNT(*) FROM standards)         AS standards,
+            (SELECT COUNT(*) FROM life_circles)      AS life_circles,
+            (SELECT COUNT(*) FROM climate_zones)     AS climate_zones,
+            (SELECT COUNT(*) FROM facility_types)    AS facility_types,
+            (SELECT COUNT(*) FROM categories)        AS categories,
+            (SELECT COUNT(*) FROM facilities)        AS facilities,
+            (SELECT COUNT(*) FROM facility_circle_map) AS facility_map,
+            (SELECT COUNT(*) FROM cases)             AS cases,
+            (SELECT COUNT(*) FROM case_facilities)   AS case_facilities,
+            (SELECT COUNT(*) FROM case_projects)     AS case_projects
+    """)[0]
     return jsonify({
-        "standards":       query("SELECT COUNT(*) c FROM standards")[0]["c"],
-        "life_circles":    query("SELECT COUNT(*) c FROM life_circles")[0]["c"],
-        "climate_zones":   query("SELECT COUNT(*) c FROM climate_zones")[0]["c"],
-        "facility_types":  query("SELECT COUNT(*) c FROM facility_types")[0]["c"],
-        "categories":      query("SELECT COUNT(*) c FROM categories")[0]["c"],
-        "facilities":      query("SELECT COUNT(*) c FROM facilities")[0]["c"],
-        "facility_map":    query("SELECT COUNT(*) c FROM facility_circle_map")[0]["c"],
-        "cases":           query("SELECT COUNT(*) c FROM cases")[0]["c"],
-        "case_facilities": query("SELECT COUNT(*) c FROM case_facilities")[0]["c"],
-        "case_projects":   query("SELECT COUNT(*) c FROM case_projects")[0]["c"],
-        "app_version":     __version__,
-        "app_updated":      __updated__,
-        "db_version":      query_meta("schema_version", default="unknown"),
-        "db_updated":      query_meta("last_seed_date", default="unknown"),
+        **_counts,
+        "app_version": __version__,
+        "app_updated": __updated__,
+        "db_version":  query_meta("schema_version", default="unknown"),
+        "db_updated":  query_meta("last_seed_date", default="unknown"),
     })
 
 @app.route("/api/circles")
