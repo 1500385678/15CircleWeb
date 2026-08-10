@@ -1,7 +1,7 @@
 """
 15CircleDb Web App
 - 后端:Flask + SQLite
-- 前端:单页应用 (SPA) + Tailwind CDN + Chart.js
+- 前端:单页应用 (SPA) + Tailwind 本地编译 + Chart.js 本地静态
 - 启动:python app.py → http://localhost:5000
 """
 __version__ = "1.5.3"

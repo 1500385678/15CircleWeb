@@ -8,7 +8,9 @@
      编译方式:npx tailwindcss@3.4.13 -c static/tailwind.config.js -i static/src.css -o static/tailwind.css --minify
      content 配置只扫描 templates/,13.7KB minified,覆盖所有 grid/flex/spacing utility -->
 <link rel="stylesheet" href="/static/tailwind.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Chart.js 本地化(P0-02 修复:200KB 自托管,免 jsdelivr 单点故障 / 国内限流,首屏空白图表归零)
+     来源:https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js (200KB,header 已 minified) -->
+<script src="/static/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #fbfbfd;
