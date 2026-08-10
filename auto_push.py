@@ -79,6 +79,22 @@ class GitPusher(FileSystemEventHandler):
 
     def do_push(self):
         try:
+            # preflight:确保 user.name / user.email 已配,新机器 clone 后首次 commit
+            # 不会因 author identity unknown 失败(原代码此处静默,排错链长)
+            for key in ("user.name", "user.email"):
+                r = subprocess.run(
+                    ["git", "config", "--get", key], cwd=REPO,
+                    capture_output=True, text=True,
+                )
+                if r.returncode != 0 or not r.stdout.strip():
+                    fallback_name  = "15CircleWeb Auto"
+                    fallback_email = "auto@15circleweb.local"
+                    val = fallback_name if key == "user.name" else fallback_email
+                    print(f"[WARN] git {key} 未配置,回退为 '{val}'(仅本仓库 scope)")
+                    subprocess.run(
+                        ["git", "config", key, val], cwd=REPO,
+                        capture_output=True, text=True,
+                    )
             # git add
             r = subprocess.run(["git", "add", "-A"], cwd=REPO, capture_output=True, text=True)
             if r.returncode != 0:
