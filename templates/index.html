@@ -708,6 +708,15 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"'/]/g, c => _ESC_MAP[c]);
 }
 
+// URL 协议白名单:只允许 http(s),拦下 javascript:/data:/vbscript: 等
+// 任何插到 href/src 的 DB 字段必须先走 safeUrl,非白名单返回空字符串由调用方降级
+const _URL_OK = /^(https?:\/\/|\/)/i;
+function safeUrl(u) {
+  if (!u) return '';
+  const s = String(u).trim();
+  return _URL_OK.test(s) ? s : '';
+}
+
 // ============== 导航 ==============
 document.querySelectorAll('[data-view]').forEach(el => {
   el.addEventListener('click', (e) => {
@@ -1153,7 +1162,7 @@ async function loadStandards() {
       <div class="text-[12px] text-[color:var(--text-3)] mb-3 tabular-nums">${escapeHtml(s.code)} · ${escapeHtml(s.year)} · ${escapeHtml(s.issuer || '')}</div>
       <div class="text-[14px] text-[color:var(--text-2)] leading-relaxed">${escapeHtml(s.summary || '')}</div>
       ${s.region ? `<div class="mt-3 text-[12px] text-[color:var(--text-3)]">适用范围: ${escapeHtml(s.region)}</div>` : ''}
-      ${s.url ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-[13px] text-[color:var(--accent)] hover:underline">查看原文 →</a>` : ''}
+      ${safeUrl(s.url) ? `<a href="${escapeHtml(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-[13px] text-[color:var(--accent)] hover:underline">查看原文 →</a>` : ''}
     </div>
   `).join('');
 }
