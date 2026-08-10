@@ -710,12 +710,32 @@ function escapeHtml(s) {
 
 // URL 协议白名单:只允许 http(s),拦下 javascript:/data:/vbscript: 等
 // 任何插到 href/src 的 DB 字段必须先走 safeUrl,非白名单返回空字符串由调用方降级
+// ✅ P0 闭环:d937781 standards 卡片 url 协议白名单(2026-08-10);本函数为最后一道闸
 const _URL_OK = /^(https?:\/\/|\/)/i;
 function safeUrl(u) {
   if (!u) return '';
   const s = String(u).trim();
   return _URL_OK.test(s) ? s : '';
 }
+// 启动期自检(运行时跑一次,失败不阻塞渲染但 console.warn)
+// 防止未来 _URL_OK 正则被人为放宽后,XSS 防护静默失效
+(function _safeUrlSelfTest() {
+  const cases = [
+    ['https://example.com/a', 'https://example.com/a'],
+    ['http://x.cn/b?q=1',    'http://x.cn/b?q=1'],
+    ['/relative/path',        '/relative/path'],
+    ['javascript:alert(1)',   ''],
+    ['JaVaScRiPt:alert(1)',   ''],
+    ['data:text/html,<x>',    ''],
+    ['vbscript:msgbox(1)',    ''],
+    ['  https://ok.com  ',    'https://ok.com'],
+    ['',                      ''],
+  ];
+  for (const [input, expect] of cases) {
+    const got = safeUrl(input);
+    if (got !== expect) console.warn(`[safeUrl self-test] FAIL: ${JSON.stringify(input)} → ${JSON.stringify(got)}, expected ${JSON.stringify(expect)}`);
+  }
+})();
 
 // ============== 导航 ==============
 document.querySelectorAll('[data-view]').forEach(el => {
