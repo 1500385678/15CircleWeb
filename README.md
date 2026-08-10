@@ -53,13 +53,20 @@ _commit_push.bat "修复仪表盘布局"
 
 推送使用 User-scope 环境变量 `$env:GH_TOKEN`(已设),无需每次粘贴。
 
+> auto_push 启动时已加 preflight:若本仓库未配 `user.name` / `user.email`,自动回退为 `15CircleWeb Auto` / `auto@15circleweb.local`(只仓库 scope,不动 --global),无需手动 `git config` 即可 commit。
+
 ## 项目结构
 
 ```
 15CircleWeb/
-├── app.py                 # Flask 后端 (10 个 API)
+├── app.py                 # Flask 后端 (15 个 API)
 ├── templates\
 │   └── index.html         # 单页应用 (HTML + 内联 JS)
+├── static\
+│   ├── src.css            # Tailwind 源 (本地编译)
+│   ├── tailwind.config.js
+│   ├── tailwind.css       # Tailwind 编译产物 (13.7KB)
+│   └── chart.umd.min.js   # Chart.js 4.4.0 本地 (200KB)
 ├── auto_push.py           # 文件监听 → 自动推送
 ├── _commit_push.ps1       # PowerShell 手动推送
 ├── _commit_push.bat       # CMD 手动推送
@@ -68,21 +75,25 @@ _commit_push.bat "修复仪表盘布局"
 └── README.md
 ```
 
-## API 端点(11 个)
+## API 端点(15 个)
 
 | 端点 | 方法 | 说明 |
 |---|---|---|
-| `/api/stats` | GET | 数据库统计 |
+| `/api/stats` | GET | 数据库统计(10 张表 COUNT 合并为 1 SQL) |
+| `/api/dashboard_summary` | GET | 仪表盘聚合端点(消除 N+1) |
 | `/api/circles` | GET | 5 级生活圈 |
-| `/api/circles/<code>/facilities` | GET | 圈层配建清单 |
-| `/api/calculate` | GET | 反推配建计算 |
+| `/api/circles/<code>/facilities` | GET | 单圈层配建清单(支持 ?priority=必配/宜配/参考) |
+| `/api/circles/facilities/all` | GET | 全部圈层 × 全部优先级 一次拉取(径向图聚合) |
+| `/api/calculate` | GET | 反推配建计算(根据人口/圈层类型) |
 | `/api/cases` | GET | 案例列表(含 `facilities_count` / `projects_count`) |
 | `/api/cases/<code>` | GET | 案例详情(含 `facilities` / `projects`) |
 | `/api/cases/<code>/projects` | GET | 案例项目清单(按类目分组) |
+| `/api/massing/cases/<code>` | GET | 案例体块推算(面积 / 配比 / 三维像素) |
+| `/api/massing/circles/<code>` | GET | 圈层体块推算 |
 | `/api/categories` | GET | 分类树 |
-| `/api/facilities` | GET | 设施列表 |
-| `/api/search` | GET | 关键词搜索 |
-| `/api/standards` | GET | 规范来源 |
+| `/api/facilities` | GET | 设施列表(68 个) |
+| `/api/search` | GET | 关键词搜索(支持中英别名,LIKE 通配符已转义) |
+| `/api/standards` | GET | 规范来源(10 份,url 走 http(s) 协议白名单防 XSS) |
 
 ## 数据库要求
 
