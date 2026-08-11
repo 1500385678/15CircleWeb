@@ -1245,7 +1245,7 @@ function lightenColor(hex, ratio = 1.2) {
   return `rgb(${r},${g},${b})`;
 }
 
-function drawIsometricBox(svg, x, y, w, h, d, color, label) {
+function drawIsometricBox(svg, x, y, w, h, d, color, label, b) {
   // x, y = 立方体"前左下角"在屏幕坐标(底面)
   // w = 宽度, h = 高度, d = 深度
   // iso 投影: dx=0.5, dy=0.25
@@ -1321,7 +1321,10 @@ function drawIsometricBox(svg, x, y, w, h, d, color, label) {
   areaLabel.setAttribute('fill', '#6e6e73');
   areaLabel.setAttribute('font-size', '10');
   areaLabel.setAttribute('pointer-events', 'none');
-  areaLabel.textContent = Math.round(h * w * d / 100).toLocaleString() + ' ㎡';
+  // 用后端真实数据 (b.area_sqm / b.pct),不再用 SVG 像素 w*h*d/100 估算(R103 P0)
+  const sqm  = b ? Math.round(b.area_sqm).toLocaleString() : Math.round(h * w * d / 100).toLocaleString();
+  const pct  = b ? b.pct.toFixed(1) : '?';
+  areaLabel.textContent = `${sqm} ㎡ · ${pct}%`;
   g.appendChild(areaLabel);
 
   svg.appendChild(g);
@@ -1380,7 +1383,7 @@ function renderMassingSVG(blocks) {
     const w = calcW(b.area_sqm);
     const h = calcH(b.area_sqm);
     const d = calcD(w);
-    drawIsometricBox(svg, cursorX, row1Y, w, h, d, b.color, b.label);
+    drawIsometricBox(svg, cursorX, row1Y, w, h, d, b.color, b.label, b);
     cursorX += w + 20;
   }
 
@@ -1392,7 +1395,7 @@ function renderMassingSVG(blocks) {
       const w = calcW(b.area_sqm);
       const h = calcH(b.area_sqm);
       const d = calcD(w);
-      drawIsometricBox(svg, cursorX2, row2Y, w, h, d, b.color, b.label);
+      drawIsometricBox(svg, cursorX2, row2Y, w, h, d, b.color, b.label, b);
       cursorX2 += w + 20;
     }
   }
