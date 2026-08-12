@@ -33,6 +33,9 @@ class GitPusher(FileSystemEventHandler):
         self._lock = threading.Lock()
         self._pushing = False
         self._pending_again = False
+        # preflight 只在首次 do_push 跑一次:避免高频推送下每次都 2 次 git config 子进程 + 噪音日志
+        # ✅ P1 闭环:2026-08-13 Verifier R298
+        self._preflight_done = False
 
     def on_any_event(self, event):
         if event.is_directory:
@@ -81,20 +84,23 @@ class GitPusher(FileSystemEventHandler):
         try:
             # preflight:确保 user.name / user.email 已配,新机器 clone 后首次 commit
             # 不会因 author identity unknown 失败(原代码此处静默,排错链长)
-            for key in ("user.name", "user.email"):
-                r = subprocess.run(
-                    ["git", "config", "--get", key], cwd=REPO,
-                    capture_output=True, text=True,
-                )
-                if r.returncode != 0 or not r.stdout.strip():
-                    fallback_name  = "15CircleWeb Auto"
-                    fallback_email = "auto@15circleweb.local"
-                    val = fallback_name if key == "user.name" else fallback_email
-                    print(f"[WARN] git {key} 未配置,回退为 '{val}'(仅本仓库 scope)")
-                    subprocess.run(
-                        ["git", "config", key, val], cwd=REPO,
+            # ✅ P1 闭环:2026-08-13 Verifier R298 — 只在首次 do_push 跑一次,后续推送零开销
+            if not self._preflight_done:
+                for key in ("user.name", "user.email"):
+                    r = subprocess.run(
+                        ["git", "config", "--get", key], cwd=REPO,
                         capture_output=True, text=True,
                     )
+                    if r.returncode != 0 or not r.stdout.strip():
+                        fallback_name  = "15CircleWeb Auto"
+                        fallback_email = "auto@15circleweb.local"
+                        val = fallback_name if key == "user.name" else fallback_email
+                        print(f"[WARN] git {key} 未配置,回退为 '{val}'(仅本仓库 scope)")
+                        subprocess.run(
+                            ["git", "config", key, val], cwd=REPO,
+                            capture_output=True, text=True,
+                        )
+                self._preflight_done = True
             # git add
             r = subprocess.run(["git", "add", "-A"], cwd=REPO, capture_output=True, text=True)
             if r.returncode != 0:
