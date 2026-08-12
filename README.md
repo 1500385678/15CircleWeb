@@ -93,7 +93,7 @@ _commit_push.bat "修复仪表盘布局"
 | `/api/categories` | GET | 分类树 |
 | `/api/facilities` | GET | 设施列表(68 个) |
 | `/api/search` | GET | 关键词搜索(支持中英别名,LIKE 通配符已转义) |
-| `/api/standards` | GET | 规范来源(10 份,url 走 http(s) 协议白名单防 XSS) |
+| `/api/standards` | GET | 规范来源(10 份,url 走服务端 + 客户端双层 http(s) 协议白名单防 XSS) |
 
 ## 数据库要求
 

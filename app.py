@@ -10,6 +10,7 @@ __updated__ = "2026-07-24"
 import sqlite3
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 from flask import Flask, jsonify, request, render_template, abort, g
 
 BASE = Path(__file__).parent
@@ -635,9 +636,28 @@ def api_search():
     """, [like, like, like, like, like])
     return jsonify(rows)
 
+# URL 协议白名单(服务端第二道闸):只放行 http(s) + 相对路径/纯文件名,
+# 拦下 javascript:/data:/vbscript:/file: 等可执行协议
+# 与前端 safeUrl() 客户端白名单互为冗余:任一层被绕过仍由另一层兜底
+# ✅ P0 闭环:2026-08-12 Verifier R297 双层防御
+_ALLOWED_URL_SCHEMES = {"http", "https", ""}
+def _sanitize_standards_url(u):
+    if not u:
+        return ""
+    try:
+        scheme = (urlparse(u).scheme or "").lower()
+    except (ValueError, TypeError):
+        return ""
+    return u if scheme in _ALLOWED_URL_SCHEMES else ""
+
 @app.route("/api/standards")
 def api_standards():
-    return jsonify(query("SELECT * FROM standards ORDER BY region, year DESC"))
+    rows = query("SELECT * FROM standards ORDER BY region, year DESC")
+    # 服务端过滤 url 字段:非白名单协议直接置空(对应卡片仅留 short_name 文字,不渲染链接)
+    for s in rows:
+        if isinstance(s, dict) and "url" in s:
+            s["url"] = _sanitize_standards_url(s.get("url"))
+    return jsonify(rows)
 
 # ---------- 启动 ----------
 if __name__ == "__main__":

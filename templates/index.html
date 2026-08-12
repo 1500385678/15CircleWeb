@@ -712,7 +712,8 @@ function escapeHtml(s) {
 
 // URL 协议白名单:只允许 http(s),拦下 javascript:/data:/vbscript: 等
 // 任何插到 href/src 的 DB 字段必须先走 safeUrl,非白名单返回空字符串由调用方降级
-// ✅ P0 闭环:d937781 standards 卡片 url 协议白名单(2026-08-10);本函数为最后一道闸
+// ✅ P0 闭环:d937781 (2026-08-10) 客户端白名单;app.py _sanitize_standards_url (2026-08-12) 服务端白名单
+// 本函数仍为最后一道闸,两层防御互为冗余:即使 REST 客户端绕过本函数直调 /api/standards,服务端也清掉非 http(s) 协议 url
 const _URL_OK = /^(https?:\/\/|\/)/i;
 function safeUrl(u) {
   if (!u) return '';
