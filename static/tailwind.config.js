@@ -6,6 +6,10 @@ module.exports = {
     "./templates/**/*.html",
     "./templates/**/*.js",
   ],
+  // ✅ P1 闭环:2026-08-13 Verifier R300 — sr-only 用于全局搜索 a11y 标签
+  safelist: [
+    "sr-only",
+  ],
   theme: {
     extend: {},
   },

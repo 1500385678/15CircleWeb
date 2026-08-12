@@ -240,9 +240,14 @@
     </div>
     <div class="flex items-center gap-3">
       <div class="relative hidden sm:block">
+        <!-- ✅ P1 闭环:2026-08-13 Verifier R300 — WCAG 4.1.2: aria-label + sr-only label + 装饰图标 aria-hidden -->
+        <label for="global-search" class="sr-only">全局搜索</label>
         <input id="global-search" type="text" placeholder="搜索设施、案例、分类…"
+               aria-label="全局搜索设施/案例/分类"
                class="input w-72">
-        <svg class="absolute left-3 top-2.5 w-4 h-4 text-[color:var(--text-3)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="absolute left-3 top-2.5 w-4 h-4 text-[color:var(--text-3)]"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             role="img" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
       </div>
