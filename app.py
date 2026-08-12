@@ -242,11 +242,17 @@ def api_calculate():
         population = int(request.args.get("population", 50000))
     except ValueError:
         return jsonify({"error": "population 必须是整数"}), 400
-    circles = request.args.get("circles", "15min,10min").split(",")
-    priority = request.args.get("priority", "必配,宜配")
+    circles_raw = request.args.get("circles", "15min,10min").split(",")
+    priority_raw = request.args.get("priority", "必配,宜配").split(",")
+    # 过滤空字符串(用户传 ?circles= 或 ?priority= → [''] 会拼出 IN () → 500)
+    # ✅ P1 闭环:2026-08-13 Verifier R299
+    circles = [c for c in circles_raw if c]
+    priority = [p for p in priority_raw if p]
+    if not circles or not priority:
+        return jsonify({"error": "circles / priority 不能为空(至少各 1 项)"}), 400
 
     placeholders_c = ",".join("?" for _ in circles)
-    placeholders_p = ",".join("?" for _ in priority.split(","))
+    placeholders_p = ",".join("?" for _ in priority)
 
     sql = f"""
         SELECT
@@ -276,7 +282,7 @@ def api_calculate():
             CASE fcm.priority WHEN '必配' THEN 1 WHEN '宜配' THEN 2 WHEN '参考' THEN 3 ELSE 4 END,
             c.sort_order, f.sort_order
     """
-    args = [population, population] + circles + priority.split(",")
+    args = [population, population] + circles + priority
     rows = query(sql, args)
 
     # 加总
