@@ -12,6 +12,9 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 from flask import Flask, jsonify, request, render_template, abort, g
+# 共享色板(色板唯一性 assert 在 import 阶段就跑,见 _colors.py)
+# ✅ P2 闭环:2026-08-13 Verifier R301 — 抽到独立模块
+from _colors import CASE_CATEGORY_COLORS, CIRCLE_CATEGORY_COLORS
 
 BASE = Path(__file__).parent
 # 库在上级目录的上一级(适应 webapp/ 在 _scratch/ 或仓库根目录下的两种部署)
@@ -370,33 +373,9 @@ def api_case_projects(code):
 
 
 # ============== 业态体块图 ==============
-# 类目(11 大类:阿那亚) -> 颜色
-CASE_CATEGORY_COLORS = {
-    "精神建筑":   "#af52de",  # 紫
-    "业主食堂":   "#ff9500",  # 橙
-    "文艺空间":   "#5856d6",  # 深紫蓝
-    "运动休闲":   "#34c759",  # 绿
-    "酒店民宿":   "#5ac8fa",  # 青
-    "精品商业":   "#ff2d55",  # 粉
-    "亲子休闲":   "#ff3b30",  # 红
-    "创新教育":   "#ffcc00",  # 黄
-    "全系餐饮":   "#ff9500",  # 橙
-    "生活服务":   "#8e8e93",  # 灰
-    "医疗健康":   "#ff3b30",  # 红
-}
-# 一级分类 (10 大类) -> 颜色
-CIRCLE_CATEGORY_COLORS = {
-    "PUB": "#0066cc",  # 公共服务 - 苹果蓝
-    "BIZ": "#ff9500",  # 商业服务 - 橙
-    "CUL": "#af52de",  # 文化活动 - 紫
-    "TRN": "#5ac8fa",  # 交通设施 - 青
-    "GRN": "#34c759",  # 绿地与公共空间 - 绿
-    "MUN": "#a3a3a3",  # 市政设施 - 灰
-    "GOV": "#5856d6",  # 行政管理 - 深蓝紫
-    "SMT": "#ff2d55",  # 智慧/智能化 - 粉
-    "SAF": "#ff3b30",  # 公共安全 - 红
-    "OTH": "#d1d1d6",  # 其他 - 浅灰
-}
+# 案例业态 11 大类色板(CASE_CATEGORY_COLORS) + 圈层 10 大类色板(CIRCLE_CATEGORY_COLORS)
+# 已抽到 _colors.py(色板唯一性 assert 在 import 阶段跑,新增业态重复色会立即 fail-fast)
+# ✅ P2 闭环:2026-08-13 Verifier R301
 
 
 @app.route("/api/massing/cases/<code>")
