@@ -295,7 +295,9 @@ def api_calculate():
         r["total_land"] = round(cnt * r["per_unit_land"], 0)
 
     return jsonify({
-        "input": {"population": population, "circles": circles, "priority": priority.split(",")},
+        # ✅ P0 闭环:2026-08-13 Verifier R357 — R299 把 priority 处理成 list 后,line 298
+        # 残留的 priority.split(',') 必抛 AttributeError.任何带 ?circles=&priority= 的请求都 500.
+        "input": {"population": population, "circles": circles, "priority": priority},
         "items": rows,
         "summary": {
             "total_facility_types": len(rows),
